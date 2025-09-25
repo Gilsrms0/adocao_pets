@@ -1,0 +1,53 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADOTANTE") // 'ADMIN' ou 'ADOTANTE'
+  pets      Pet[] // Nova relação: Usuário (Admin) pode cadastrar vários Pets
+}
+
+model Adotante {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  phone     String
+  address   String
+  imageUrl  String?
+  adocoes   Adocao[]
+}
+
+model Pet {
+  id          Int      @id @default(autoincrement())
+  name        String
+  species     String
+  birthDate   DateTime
+  description String
+  imageUrl    String?
+  status      String   @default("disponivel")
+  adocao      Adocao?
+
+  // NOVOS CAMPOS PARA RELAÇÃO COM O ADMINISTRADOR QUE CADASTROU
+  ownerId     Int?
+  owner       User?    @relation(fields: [ownerId], references: [id])
+}
+
+model Adocao {
+  id          Int      @id @default(autoincrement())
+  pet         Pet      @relation(fields: [petId], references: [id])
+  petId       Int      @unique
+  adotante    Adotante @relation(fields: [adotanteId], references: [id])
+  adotanteId  Int
+  dataAdocao  DateTime @default(now())
+}
