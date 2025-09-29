@@ -16,6 +16,7 @@ import { UPLOADS_PATH } from './config/paths.js';
 import authRoutes from './auth/authRoutes.js'; 
 import petRoutes from './routes/petRoutes.js';
 import adotanteRoutes from './routes/adotanteRoutes.js';
+import adocaoRoutes from './routes/adocaoRoutes.js'; // Importa a nova rota
 
 const app = express();
 const prisma = new PrismaClient(); // Inicializa prisma aqui
@@ -32,6 +33,7 @@ app.use('/api/uploads', express.static(UPLOADS_PATH));
 app.use('/api/auth', authRoutes);
 app.use('/api/pets', petRoutes);
 app.use('/api/adotantes', adotanteRoutes);
+app.use('/api/adocoes', adocaoRoutes); // Registra a nova rota
 
 app.get('/', (req, res) => {
   res.send('API de Adoção de Pets está rodando!');

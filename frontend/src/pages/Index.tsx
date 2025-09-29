@@ -9,103 +9,29 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Menu, X, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, MapPin, Facebook, Instagram, Twitter, Mail, PlusCircle } from "lucide-react";
+import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, PlusCircle, Facebook, Instagram, Twitter, Mail, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-pets.jpg";
 import { useToast } from "@/components/ui/use-toast";
+import { Header } from "@/components/layout/Header";
 
 // Types
 interface Pet {
-  id: number; // Corrigido para number
-  name: string; // Corrigido para name
+  id: number;
+  name: string;
   species: string;
-  birthDate: string; // Corrigido para birthDate
+  birthDate: string;
   description: string;
-  status: "disponivel" | "adotado"; // Corrigido para minúsculas
-  imageUrl?: string; // Corrigido para imageUrl
-  tamanho?: "PEQUENO" | "MEDIO" | "GRANDE"; // Mantido como está
-  personalidade?: string; // Corrigido para string (backend armazena como string)
+  status: "disponivel" | "adotado";
+  imageUrl?: string;
+  tamanho?: "PEQUENO" | "MEDIO" | "GRANDE";
+  personalidade?: string;
 }
 
-// Header Component
-const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navItems = [
-    { name: "Início", href: "#home" },
-    { name: "Pets", href: "#pets" },
-    { name: "Como Adotar", href: "#how-to-adopt" },
-    { name: "Cadastrar Pet", href: "#register-pet" },
-    { name: "Contato", href: "#contact" }
-  ];
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" fill="currentColor" />
-            </div>
-            <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              AdoteMe
-            </span>
-          </div>
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item, index) => (
-              <a
-                key={index}
-                href={item.href}
-                className="text-foreground hover:text-primary transition-colors font-medium"
-              >
-                {item.name}
-              </a>
-            ))}
-          </nav>
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
-              <Heart className="w-4 h-4 mr-2" />
-              Adotar Agora
-            </Button>
-          </div>
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </Button>
-        </div>
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border bg-background/95 backdrop-blur-md">
-            <nav className="flex flex-col space-y-4">
-              {navItems.map((item, index) => (
-                <a
-                  key={index}
-                  href={item.href}
-                  className="text-foreground hover:text-primary transition-colors font-medium px-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
-              ))}
-              <div className="pt-4">
-                <Button className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300">
-                  <Heart className="w-4 h-4 mr-2" />
-                  Adotar Agora
-                </Button>
-              </div>
-            </nav>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-};
+
+
+// O resto do arquivo continua aqui...
+
 
 // Hero Section Component
 const HeroSection = () => {
