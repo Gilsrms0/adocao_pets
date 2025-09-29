@@ -125,7 +125,7 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           <h1 className="text-5xl md:text-7xl font-bold leading-tight">
             Encontre seu
-            <span className="block bg-gradient-to-r from-primary-glow to-accent-glow bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Melhor Amigo
             </span>
           </h1>

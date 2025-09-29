@@ -63,6 +63,7 @@ Seu projeto possui um script para popular o banco. Para executá-lo:
 ```bash
 npx prisma db seed
 ```
+> **Nota:** Se você fizer alterações no arquivo `prisma/seed.js`, é necessário executar este comando novamente para que as mudanças sejam aplicadas ao seu banco de dados.
 
 ## ▶️ Executando a Aplicação
 
