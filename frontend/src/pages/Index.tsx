@@ -442,9 +442,56 @@ const PetModal = ({ pet, isOpen, onClose, onAdopt }: { pet: Pet; isOpen: boolean
   );
 };
 
+// Adoption Modal Component
+const AdoptionModal = ({ petId, isOpen, onClose, onConfirm, isPending }: { petId: number | null; isOpen: boolean; onClose: () => void; onConfirm: (adopterId: string) => void; isPending: boolean; }) => {
+  const [adopterId, setAdopterId] = useState("");
+  const { toast } = useToast();
+
+  const handleConfirm = () => {
+    if (adopterId) {
+      onConfirm(adopterId);
+    } else {
+      toast({
+        title: "Aviso",
+        description: "ID do adotante é necessário para registrar a adoção.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (!isOpen || petId === null) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Registrar Adoção</DialogTitle>
+          <DialogDescription>
+            Para continuar, por favor, insira o ID do adotante. Esta informação será substituída por um sistema de login no futuro.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <Label htmlFor="adopterId" className="text-foreground font-semibold">ID do Adotante</Label>
+          <Input
+            id="adopterId"
+            value={adopterId}
+            onChange={(e) => setAdopterId(e.target.value)}
+            placeholder="Insira o ID do adotante"
+            className="bg-background border-border"
+          />
+        </div>
+        <Button onClick={handleConfirm} disabled={!adopterId || isPending} className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300">
+          {isPending ? "Registrando..." : "Confirmar Adoção"}
+        </Button>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // Pets Section Component
 const PetsSection = () => {
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [adoptionPetId, setAdoptionPetId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [filterStatus, setFilterStatus] = useState("available");
@@ -495,6 +542,7 @@ const PetsSection = () => {
         description: "Adoção registrada com sucesso! O pet foi marcado como adotado.",
       });
       queryClient.invalidateQueries({ queryKey: ['pets'] }); // Refresh pet list
+      setAdoptionPetId(null); // Close modal on success
     },
     onError: (error) => {
       toast({
@@ -512,16 +560,12 @@ const PetsSection = () => {
   });
 
   const handleAdopt = (petId: number) => {
-    // For now, prompt for adopter ID. This will be replaced by authentication later.
-    const adopterId = prompt("Por favor, insira o ID do adotante:");
-    if (adopterId) {
-      adoptPetMutation.mutate({ petId, adopterId });
-    } else {
-      toast({
-        title: "Aviso",
-        description: "ID do adotante é necessário para registrar a adoção.",
-        variant: "destructive",
-      });
+    setAdoptionPetId(petId);
+  };
+
+  const handleConfirmAdoption = (adopterId: string) => {
+    if (adoptionPetId) {
+      adoptPetMutation.mutate({ petId: adoptionPetId, adopterId });
     }
   };
 
@@ -653,6 +697,15 @@ const PetsSection = () => {
             onAdopt={handleAdopt}
           />
         )}
+
+        {/* Adoption Modal */}
+        <AdoptionModal
+          petId={adoptionPetId}
+          isOpen={!!adoptionPetId}
+          onClose={() => setAdoptionPetId(null)}
+          onConfirm={handleConfirmAdoption}
+          isPending={adoptPetMutation.isPending}
+        />
       </div>
     </section>
   );

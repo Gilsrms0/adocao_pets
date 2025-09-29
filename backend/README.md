@@ -1,113 +1,163 @@
-🐾 Sistema de Adoção de Pets - Backend
-Este repositório contém a API RESTful que serve como o coração do seu sistema de adoção de pets. Ele gerencia dados de pets, adotantes, autenticação de usuários e o upload de imagens.
+# Backend - Sistema de Adoção de Pets
 
-🛠️ Tecnologias Utilizadas
-| Componente | Tecnologia Principal | Descrição |
-| :--- | :--- | :--- |
-| Linguagem | Node.js (Express) | Servidor rápido e escalável. |
-| Banco de Dados | PostgreSQL | BD relacional de alta performance. |
-| ORM | Prisma | Gerenciamento de esquema e consultas SQL. |
-| Autenticação | JWT, bcryptjs | Segura o acesso às rotas de administrador. |
-| Uploads | Multer | Middleware para processamento de multipart/form-data (imagens). |
+Este é o backend para o sistema de adoção de pets "AdoteMe". Ele é responsável por gerenciar os dados de pets, adotantes, e o processo de adoção, além de fornecer uma API RESTful para o frontend.
 
-🚀 Configuração e Instalação (Backend)
-Siga estes passos para configurar e executar a API localmente.
+## ✨ Tecnologias Utilizadas
 
-### 1. Pré-requisitos
-- Node.js: Versão 18+ (Recomendado: v20+).
-- npm ou Yarn: Gerenciador de pacotes.
-- PostgreSQL Server: Servidor rodando localmente e acessível.
+- **Node.js**: Ambiente de execução JavaScript no servidor.
+- **Express.js**: Framework para construção da API RESTful.
+- **Prisma**: ORM para interação com o banco de dados.
+- **PostgreSQL**: Banco de dados relacional.
+- **JSON Web Tokens (JWT)**: Para autenticação e autorização de rotas.
+- **Bcrypt.js**: Para hashing de senhas.
+- **Multer**: Middleware para upload de imagens dos pets.
+- **Dotenv**: Para gerenciamento de variáveis de ambiente.
+- **CORS**: Para permitir requisições de diferentes origens (frontend).
 
-### 2. Configuração do Banco de Dados
-- Crie um Banco de Dados Vazio no seu servidor PostgreSQL. Exemplo: `pet_adoption_db`.
-- Obtenha suas Credenciais (Usuário, Senha, Host e Porta).
+## ⚙️ Pré-requisitos
 
-### 3. Instalação e Ambiente
-Navegue até o diretório `backend/`.
+Antes de começar, você vai precisar ter as seguintes ferramentas instaladas em sua máquina:
+- [Node.js](https://nodejs.org/en/) (versão 18.x ou superior)
+- [NPM](https://www.npmjs.com/) ou [Yarn](https://yarnpkg.com/)
+- [PostgreSQL](https://www.postgresql.org/download/)
 
-#### a. Instalação de Dependências
+## 🚀 Como Começar
+
+Siga os passos abaixo para configurar e executar o projeto em seu ambiente local.
+
+**1. Clone o repositório**
 ```bash
-npm install # ou yarn install
+git clone <URL_DO_SEU_REPOSITORIO>
+cd <NOME_DO_PROJETO>/backend
 ```
 
-#### b. Variáveis de Ambiente (.env)
-Crie o arquivo `.env` na raiz do diretório `backend/` com as seguintes variáveis. Atenção: Adapte a `DATABASE_URL` com suas credenciais do PostgreSQL.
+**2. Instale as dependências**
+```bash
+npm install
+```
+
+**3. Configure as Variáveis de Ambiente**
+
+Crie um arquivo chamado `.env` na raiz do diretório `backend/` e adicione a seguinte variável, substituindo pelos dados do seu banco de dados PostgreSQL.
 
 ```env
-# 🚨 URL de Conexão com o PostgreSQL
-# Exemplo: postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME
-DATABASE_URL="postgresql://user_postgres:minhasenha@localhost:5432/pet_adoption_db?schema=public" 
-
-# Chave Secreta do JWT para Assinatura de Tokens
-JWT_SECRET="SEGREDO_SUPER_SECRETO" 
-
-# Chave Secreta para o Registro de Administrador
-SECRET_ADMIN_KEY="sua_chave_secreta_aqui"
+# Exemplo de .env
+DATABASE_URL="postgresql://USUARIO:SENHA@HOST:PORTA/NOME_DO_BANCO?schema=public"
 ```
+*   **USUARIO**: Seu nome de usuário do PostgreSQL.
+*   **SENHA**: Sua senha do PostgreSQL.
+*   **HOST**: Onde seu banco de dados está rodando (ex: `localhost`).
+*   **PORTA**: A porta do seu banco de dados (padrão: `5432`).
+*   **NOME_DO_BANCO**: O nome do banco de dados que você criou para este projeto.
 
-#### c. Migração do Prisma (Criação de Tabelas)
-Aplique o esquema definido no seu arquivo `schema.prisma` ao banco de dados:
+**4. Execute as Migrations do Banco de Dados**
+
+Este comando irá criar as tabelas no seu banco de dados com base no schema do Prisma.
 ```bash
-npx prisma migrate dev --name init_postgres
+npx prisma migrate dev
 ```
 
-#### d. Inicialização da Pasta de Uploads (CRÍTICO)
-O Multer requer que a pasta de destino exista. Crie-a manualmente na raiz do `backend/`:
+**5. (Opcional) Popule o Banco de Dados com Dados Iniciais**
+
+Seu projeto possui um script para popular o banco. Para executá-lo:
 ```bash
-mkdir uploads
+npx prisma db seed
 ```
 
-### 4. Execução do Servidor
-Inicie a API em modo de desenvolvimento:
+## ▶️ Executando a Aplicação
+
+**Modo de Desenvolvimento**
+Para iniciar o servidor em modo de desenvolvimento com hot-reload (reinicia automaticamente ao salvar alterações):
 ```bash
-npm run dev 
+npm run dev
 ```
-O Backend (API) estará rodando em `http://localhost:3001`.
+O servidor estará disponível em `http://localhost:3001` (ou a porta definida em seu `.env`).
 
-## 🗺️ Rotas da API
-Todas as rotas são prefixadas por `/api`.
+**Modo de Produção**
+Para iniciar o servidor em modo de produção:
+```bash
+npm start
+```
 
-### 🔑 Rotas de Autenticação (`/api/auth`)
-| Rota | Método | Descrição |
-| :--- | :--- | :--- |
-| `/api/auth/register` | POST | Cria um novo usuário (ADOTANTE). Inclua `adminKey` para criar um ADM. |
-| `/api/auth/login` | POST | Autentica o usuário e retorna o JWT. |
-
-### 🐾 Rotas de Pets (`/api/pets`)
-As rotas marcadas como (ADM) requerem o envio de um token JWT válido no cabeçalho `Authorization: Bearer <token>`.
-
-| Rota | Método | Proteção | Descrição |
-| :--- | :--- | :--- | :--- |
-| `/api/pets` | GET | Pública | Lista pets com status: 'disponivel'. |
-| `/api/pets/admin` | GET | ADM | Lista todos os pets (disponíveis e adotados). |
-| `/api/pets` | POST | ADM | Cadastra novo pet (requer `image` como `multipart/form-data`). |
-| `/api/pets/:id` | GET | Pública | Busca um pet específico pelo ID. |
-| `/api/pets/:id` | PUT | ADM | Atualiza dados e imagem do pet. |
-| `/api/pets/data/:id` | PUT | ADM | Atualiza dados do pet sem alterar a imagem. |
-| `/api/pets/:id` | DELETE | ADM | Deleta um pet. |
-
-### 🧑 Rotas de Adotantes (`/api/adotantes`)
-| Rota | Método | Proteção | Descrição |
-| :--- | :--- | :--- | :--- |
-| `/api/adotantes` | POST | Pública | Cadastra um novo adotante. |
-| `/api/adotantes` | GET | ADM | Lista todos os adotantes. |
-| `/api/adotantes/:id` | GET | ADM | Busca adotante pelo ID. |
-
-### 💡 Estrutura e Organização (`backend/src/`)
-O projeto utiliza uma estrutura modular, com destaque para o módulo de configuração de caminhos (`paths.js`), que resolveu problemas de inicialização e Multer:
+## 📂 Estrutura do Projeto
 
 ```
-backend/src/
-├── auth/
-│   ├── authController.js    
-│   └── authMiddleware.js    
-├── config/
-│   └── paths.js             # Define e exporta caminhos absolutos (ROOT_DIR, UPLOADS_PATH).
-├── controllers/
-│   ├── adotanteController.js
-│   └── petController.js     # Contém o Multer configurado via paths.js.
-├── routes/
-│   ├── adotanteRoutes.js    
-│   └── petRoutes.js         
-└── server.js                # Ponto de entrada (usa paths.js para configurar rotas estáticas).
+backend/
+├── prisma/
+│   ├── schema.prisma   # Define os modelos e a conexão com o banco
+│   └── migrations/     # Histórico de migrações do banco
+├── src/
+│   ├── auth/           # Lógica de autenticação e rotas
+│   ├── config/         # Arquivos de configuração (ex: caminhos)
+│   ├── controllers/    # Lógica de negócio das rotas
+│   ├── routes/         # Definição dos endpoints da API
+│   └── server.js       # Ponto de entrada principal do servidor
+├── uploads/            # Diretório onde as imagens dos pets são salvas
+├── .env                # Arquivo com variáveis de ambiente (local)
+└── package.json        # Dependências e scripts do projeto
 ```
+
+## Endpoints da API
+
+A seguir está a lista de endpoints disponíveis na API.
+
+---
+
+### Autenticação (`/api/auth`)
+*(Rotas de autenticação como `login` e `register` são gerenciadas aqui. Verifique `src/auth/authRoutes.js` para detalhes).*
+
+---
+
+### Pets (`/api/pets`)
+
+- **`GET /`**
+  - **Descrição**: Retorna uma lista de todos os pets.
+  - **Acesso**: Público.
+
+- **`GET /:id`**
+  - **Descrição**: Retorna os detalhes de um pet específico pelo seu ID.
+  - **Acesso**: Público.
+
+- **`POST /`**
+  - **Descrição**: Cria um novo pet. Requer envio de `multipart/form-data` para a imagem.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`PUT /:id`**
+  - **Descrição**: Atualiza completamente um pet, incluindo a imagem.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`PUT /no-image/:id`**
+  - **Descrição**: Atualiza os dados de um pet sem alterar a imagem.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`DELETE /:id`**
+  - **Descrição**: Deleta um pet pelo seu ID.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`GET /admin`**
+  - **Descrição**: Rota para visualização de pets no painel de administração.
+  - **Acesso**: Privado (requer token de Admin).
+
+---
+
+### Adotantes (`/api/adotantes`)
+
+- **`GET /`**
+  - **Descrição**: Retorna uma lista de todos os adotantes.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`GET /:id`**
+  - **Descrição**: Retorna os detalhes de um adotante específico pelo seu ID.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`POST /`**
+  - **Descrição**: Cria um novo adotante.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`PUT /:id`**
+  - **Descrição**: Atualiza os dados de um adotante.
+  - **Acesso**: Privado (requer token de Admin).
+
+- **`DELETE /:id`**
+  - **Descrição**: Deleta um adotante pelo seu ID.
+  - **Acesso**: Privado (requer token de Admin).
