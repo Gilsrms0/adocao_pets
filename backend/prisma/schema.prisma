@@ -36,6 +36,8 @@ model Pet {
   description String
   imageUrl    String?
   status      String   @default("disponivel")
+  tamanho     String? // Adicionado o campo tamanho
+  personalidade String? // Adicionado o campo personalidade
   adocao      Adocao?
 
   // NOVOS CAMPOS PARA RELAÇÃO COM O ADMINISTRADOR QUE CADASTROU

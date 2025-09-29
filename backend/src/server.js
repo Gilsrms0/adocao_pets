@@ -3,6 +3,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
+import dotenv from 'dotenv'; // Importa dotenv
+
+dotenv.config(); // Carrega as variáveis de ambiente do .env
 
 // --- IMPORTAÇÃO CORRIGIDA ---
 // Importa o caminho dos arquivos de configuração
@@ -15,14 +18,15 @@ import petRoutes from './routes/petRoutes.js';
 import adotanteRoutes from './routes/adotanteRoutes.js';
 
 const app = express();
-const prisma = new PrismaClient();
-const PORT = 3001;
+const prisma = new PrismaClient(); // Inicializa prisma aqui
+
+const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 app.use(cors());
 
 // Rota estática para servir imagens. Usa UPLOADS_PATH.
-app.use('/uploads', express.static(UPLOADS_PATH)); // <-- USANDO O CAMINHO CORRETO
+app.use('/api/uploads', express.static(UPLOADS_PATH));
 
 // Rotas da API
 app.use('/api/auth', authRoutes);
@@ -33,6 +37,37 @@ app.get('/', (req, res) => {
   res.send('API de Adoção de Pets está rodando!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+// Conecta ao banco de dados antes de iniciar o servidor
+async function startServer() {
+  try {
+    await prisma.$connect();
+    console.log("PrismaClient conectado ao banco de dados.");
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando na porta ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Erro ao conectar PrismaClient ou iniciar servidor:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+// Adiciona handlers para erros não tratados
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('exit', async (code) => {
+  console.log(`Processo Node.js encerrado com código: ${code}`);
+  if (prisma) {
+    await prisma.$disconnect();
+    console.log("PrismaClient desconectado do banco de dados.");
+  }
 });

@@ -1,5 +1,118 @@
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background-color: #f3f4f6;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
+All colors MUST be HSL.
+*/
+@layer base {
+  :root {
+    --background: 35 25% 98%;
+    --foreground: 25 15% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 25 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 25 15% 15%;
+    --primary: 25 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 25 90% 65%;
+    --secondary: 145 40% 58%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 145 45% 65%;
+    --accent: 200 75% 65%;
+    --accent-foreground: 0 0% 100%;
+    --accent-glow: 200 80% 72%;
+    --muted: 35 15% 94%;
+    --muted-foreground: 25 10% 45%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 20% 88%;
+    --input: 35 20% 88%;
+    --ring: 25 85% 58%;
+    /* Beautiful gradients for pet adoption theme */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--secondary-glow)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-glow)));
+    --gradient-warm: linear-gradient(135deg, hsl(25 85% 58%), hsl(45 85% 68%));
+    --gradient-hero: linear-gradient(135deg, hsl(25 85% 58%) 0%, hsl(145 40% 58%) 50%, hsl(200 75% 65%) 100%);
+    /* Elegant shadows */
+    --shadow-soft: 0 4px 20px -8px hsl(var(--primary) / 0.15);
+    --shadow-glow: 0 8px 40px -12px hsl(var(--primary) / 0.25);
+    --shadow-card: 0 2px 12px 4px hsl(25 15% 15% / 0.1);
+    /* Smooth transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  .dark {
+    --background: 25 15% 8%;
+    --foreground: 35 25% 95%;
+    --card: 25 20% 12%;
+    --card-foreground: 35 25% 95%;
+    --popover: 25 20% 12%;
+    --popover-foreground: 35 25% 95%;
+    --primary: 25 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 25 90% 65%;
+    --secondary: 145 40% 48%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-glow: 145 45% 55%;
+    --accent: 200 75% 55%;
+    --accent-foreground: 0 0% 100%;
+    --accent-glow: 200 80% 62%;
+    --muted: 25 20% 18%;
+    --muted-foreground: 35 15% 65%;
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 25 25% 20%;
+    --input: 25 25% 20%;
+    --ring: 25 85% 58%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+ @layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/50 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary;
+  }
+  /* Line clamp utility */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }

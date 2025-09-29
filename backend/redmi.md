@@ -14,8 +14,9 @@ Siga estes passos para configurar e executar a aplicação localmente.
 
 1. Pré-requisitos
 Node.js: Versão 18+ (Recomendado: v20+).
+TailwindCSS
 
-npm ou Yarn: Gerenciador de pacotes.
+npm: Gerenciador de pacotes.
 
 PostgreSQL Server: Servidor rodando localmente (necessário para o DATABASE_URL).
 
