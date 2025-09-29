@@ -312,7 +312,7 @@ const PetCard = ({ pet, onAdopt, onViewDetails }: { pet: Pet; onAdopt?: (petId: 
 };
 
 // Pet Modal Component
-const PetModal = ({ pet, isOpen, onClose, onAdopt }: { pet: Pet; isOpen: boolean; onClose: () => void; onAdopt?: (petId: number) => void; }) => {
+const PetModal = ({ pet, isOpen, onClose, onAdopt, isAdopting }: { pet: Pet; isOpen: boolean; onClose: () => void; onAdopt?: (petId: number) => void; isAdopting: boolean; }) => {
   const getAge = (birthDate: string) => {
     if (!birthDate) return "Idade desconhecida";
     const birth = new Date(birthDate);
@@ -430,9 +430,9 @@ const PetModal = ({ pet, isOpen, onClose, onAdopt }: { pet: Pet; isOpen: boolean
                   onAdopt?.(pet.id);
                   onClose();
                 }}
-                disabled={adoptPetMutation.isPending} // Add disabled state
+                disabled={isAdopting}
               >
-                {adoptPetMutation.isPending ? "Adotando..." : `Quero Adotar ${pet.name}`}
+                {isAdopting ? "Adotando..." : `Quero Adotar ${pet.name}`}
               </Button>
             </div>
           )}
@@ -695,6 +695,7 @@ const PetsSection = () => {
             isOpen={!!selectedPet}
             onClose={() => setSelectedPet(null)}
             onAdopt={handleAdopt}
+            isAdopting={adoptPetMutation.isPending}
           />
         )}
 
@@ -903,7 +904,7 @@ const RegisterPetForm = () => {
     createPetMutation.mutate(data);
   };
 
-  const handleInputChange = (field: string, value: string | File) => {
+  const handleInputChange = (field: string, value: string | File | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
