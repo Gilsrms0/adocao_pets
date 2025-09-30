@@ -71,10 +71,11 @@ const HeroSection = () => {
             <Button
               variant="outline"
               size="lg"
-              className="border-white text-white hover:bg-white hover:text-primary transition-all duration-300 px-8 py-6 text-lg font-semibold"
+              className="bg-white text-primary hover:bg-white/90 hover:shadow-glow transition-all duration-300 px-8 py-6 text-lg font-semibold"
               onClick={() => document.getElementById('how-to-adopt')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Como Adotar
+              <Heart className="w-5 h-5 mr-2" />
+              Adotar Agora
             </Button>
           </div>
           {/* Stats */}
@@ -1148,18 +1149,18 @@ const Footer = () => {
           </div>
         </div>
         {/* Call to Action */}
-        <div className="mt-12 text-center bg-gradient-primary/5 rounded-2xl p-8 border border-primary/20">
+        {/*<div className="mt-12 text-center bg-gradient-primary/5 rounded-2xl p-8 border border-primary/20">
           <h3 className="text-2xl font-bold text-foreground mb-2">
             Pronto para Fazer a Diferença?
           </h3>
           <p className="text-muted-foreground mb-6">
             Junte-se a nós e ajude a conectar pets especiais com famílias amorosas.
           </p>
-          <Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
+          {/*<Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
             <Heart className="w-4 h-4 mr-2" />
             Adotar Agora
           </Button>
-        </div>
+        </div>*/}
       </div>
     </footer>
   );
