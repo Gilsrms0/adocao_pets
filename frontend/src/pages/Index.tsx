@@ -28,7 +28,7 @@ interface Pet {
 }
 
 const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose: () => void; pets: Pet[]; }) => {
-  const [formData, setFormData] = useState({ adopterName: "", adopterEmail: "", adopterPhone: "", adopterAddress: "", petId: "" });
+  const [formData, setFormData] = useState({ adopterName: "", adopterEmail: "", adopterPhone: "", adopterAddress: "", petId: "", city: "", state: "", neighborhood: "", number: "" });
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,6 +99,22 @@ const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose
             <div className="space-y-2">
               <Label htmlFor="address">Endereço</Label>
               <Input id="address" value={formData.adopterAddress} onChange={e => setFormData(prev => ({ ...prev, adopterAddress: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="city">Cidade</Label>
+              <Input id="city" value={formData.city} onChange={e => setFormData(prev => ({ ...prev, city: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="state">Estado</Label>
+              <Input id="state" value={formData.state} onChange={e => setFormData(prev => ({ ...prev, state: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="neighborhood">Bairro</Label>
+              <Input id="neighborhood" value={formData.neighborhood} onChange={e => setFormData(prev => ({ ...prev, neighborhood: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="number">Número</Label>
+              <Input id="number" value={formData.number} onChange={e => setFormData(prev => ({ ...prev, number: e.target.value }))} required disabled={isPending} />
             </div>
           </div>
           <div className="space-y-2">

@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 // 1. Criar uma nova solicitação de adoção
 export const createAdoptionRequest = async (req, res) => {
-  const { adopterName, adopterEmail, adopterPhone, adopterAddress, petId } = req.body;
+  const { adopterName, adopterEmail, adopterPhone, adopterAddress, city, state, neighborhood, number, petId } = req.body;
 
   try {
     // Verifica se já existe uma solicitação para o mesmo pet
@@ -25,6 +25,10 @@ export const createAdoptionRequest = async (req, res) => {
         adopterEmail,
         adopterPhone,
         adopterAddress,
+        city,
+        state,
+        neighborhood,
+        number,
         petId: parseInt(petId),
       },
     });

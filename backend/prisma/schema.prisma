@@ -62,6 +62,10 @@ model AdoptionRequest {
   adopterEmail   String   @unique
   adopterPhone   String
   adopterAddress String
+  city           String
+  state          String
+  neighborhood   String
+  number         String
   status         String   @default("PENDING") // PENDING, APPROVED, DENIED
   createdAt      DateTime @default(now())
 
