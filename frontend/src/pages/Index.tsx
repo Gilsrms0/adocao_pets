@@ -145,7 +145,6 @@ const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose
   );
 };
 
-// O resto do arquivo continua aqui...
 
 
 // Hero Section Component
@@ -911,7 +910,6 @@ const Footer = () => {
     { name: "Início", href: "#home" },
     { name: "Pets Disponíveis", href: "#pets" },
     { name: "Como Adotar", href: "#how-to-adopt" },
-    { name: "Cadastrar Pet", href: "#register-pet" },
     { name: "Sobre Nós", href: "#about" }
   ];
   const supportLinks = [

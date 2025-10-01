@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Menu, X, User as UserIcon, LogOut } from "lucide-react";
+import { Heart, Menu, X, User as UserIcon, LogOut, PawPrint } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginDialog, RegisterDialog } from "@/components/AuthDialogs";
 import {
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
+import { ModeToggle } from "@/components/ThemeToggle";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,9 +34,14 @@ export const Header = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                <Heart className="w-6 h-6 text-white" fill="currentColor" />
+              {/* Symbol */}
+              <div className="relative w-10 h-10 flex items-center justify-center">
+                {/* Heart (background) with gradient */}
+                <div className="absolute inset-0 bg-gradient-primary rounded-full"></div>
+                {/* Paw icon on top */}
+                <PawPrint className="relative w-6 h-6 text-white" />
               </div>
+              {/* Text */}
               <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 AdoteMe
               </span>
@@ -54,7 +60,8 @@ export const Header = () => {
             </nav>
             
             {/* Auth Buttons / User Menu */}
-            <div className="hidden md:flex items-center space-x-2">
+            <div className="hidden md:flex items-center space-x-4">
+              <ModeToggle />
               {isAuthenticated && user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
