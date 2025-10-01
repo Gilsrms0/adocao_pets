@@ -550,7 +550,7 @@ const PetsSection = () => {
   const [adoptionPetId, setAdoptionPetId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("available");
+  const [filterStatus, setFilterStatus] = useState("disponivel");
 
   const queryClient = useQueryClient();
   const { toast } = useToast();

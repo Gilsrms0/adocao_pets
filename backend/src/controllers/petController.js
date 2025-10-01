@@ -70,15 +70,33 @@ export const createPet = async (req, res) => {
 
 // 2. Retorna todos os Pets disponíveis (Rota pública)
 export const getAllPets = async (req, res) => {
-  try {
-    const pets = await prisma.pet.findMany({
-      where: { status: "disponivel" }
-    });
-    res.status(200).json(pets);
-  } catch (error) {
-    console.error("Erro ao buscar pets (disponíveis):", error);
-    res.status(500).json({ error: "Erro ao buscar pets." });
-  }
+  const { species, status } = req.query;
+
+  try {
+    const where = {};
+
+    if (species && species !== 'all') {
+      where.species = species;
+    }
+
+    if (status && status !== 'all') {
+      if (status === 'available') {
+        where.status = 'disponivel';
+      } else {
+        where.status = status;
+      }
+    } else if (!status) {
+      where.status = 'disponivel';
+    }
+
+    const pets = await prisma.pet.findMany({
+      where,
+    });
+    res.status(200).json(pets);
+  } catch (error) {
+    console.error("Erro ao buscar pets:", error);
+    res.status(500).json({ error: "Erro ao buscar pets." });
+  }
 };
 
 // 3. Retorna todos os Pets (Incluindo adotados - Apenas Admin)
