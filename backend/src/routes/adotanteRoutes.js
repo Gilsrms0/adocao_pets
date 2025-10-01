@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/', verifyToken, isAdmin, getAdotantes); 
 router.get('/:id', verifyToken, isAdmin, getAdotanteById);
 
-router.post('/', verifyToken, isAdmin, createAdotante); 
+router.post('/', createAdotante); 
 router.put('/:id', verifyToken, isAdmin, updateAdotante);
 router.delete('/:id', verifyToken, isAdmin, deleteAdotante);
 

@@ -24,9 +24,7 @@ export const Header = () => {
     { name: "Como Adotar", href: "/#how-to-adopt" },
   ];
 
-  if (isAuthenticated && user?.role === 'ADMIN') {
-    navItems.push({ name: "Cadastrar Pet", href: "/#register-pet" });
-  }
+  
 
   return (
     <>

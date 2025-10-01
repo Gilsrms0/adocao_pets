@@ -43,6 +43,8 @@ model Pet {
   // NOVOS CAMPOS PARA RELAÇÃO COM O ADMINISTRADOR QUE CADASTROU
   ownerId     Int?
   owner       User?    @relation(fields: [ownerId], references: [id])
+
+  adoptionRequests AdoptionRequest[] // Relação com as solicitações de adoção
 }
 
 model Adocao {
@@ -52,4 +54,17 @@ model Adocao {
   adotante    Adotante @relation(fields: [adotanteId], references: [id])
   adotanteId  Int
   dataAdocao  DateTime @default(now())
+}
+
+model AdoptionRequest {
+  id             Int      @id @default(autoincrement())
+  adopterName    String
+  adopterEmail   String   @unique
+  adopterPhone   String
+  adopterAddress String
+  status         String   @default("PENDING") // PENDING, APPROVED, DENIED
+  createdAt      DateTime @default(now())
+
+  pet   Pet @relation(fields: [petId], references: [id])
+  petId Int
 }

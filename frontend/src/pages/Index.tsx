@@ -30,87 +30,217 @@ interface Pet {
 
 
 
+interface AdopterFormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  petId: string;
+}
+
+const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose: () => void; pets: Pet[]; }) => {
+  const [formData, setFormData] = useState({ adopterName: "", adopterEmail: "", adopterPhone: "", adopterAddress: "", petId: "" });
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const createRequestMutation = useMutation({
+    mutationFn: async (requestData: any) => {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Falha ao enviar solicitação.");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Sucesso!", description: "Sua solicitação de adoção foi enviada! Entraremos em contato em breve." });
+      queryClient.invalidateQueries({ queryKey: ['pets'] });
+      onClose();
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handlePetChange = (petId: string) => {
+    const pet = pets.find(p => p.id.toString() === petId);
+    setSelectedPet(pet || null);
+    setFormData(prev => ({ ...prev, petId }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.petId) {
+      toast({ title: "Atenção", description: "Por favor, selecione um pet.", variant: "destructive" });
+      return;
+    }
+    createRequestMutation.mutate(formData);
+  };
+
+  const isPending = createRequestMutation.isPending;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Formulário de Adoção</DialogTitle>
+          <DialogDescription>
+            Preencha seus dados e escolha o pet que deseja adotar. Entraremos em contato em breve!
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome Completo</Label>
+              <Input id="name" value={formData.adopterName} onChange={e => setFormData(prev => ({ ...prev, adopterName: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail</Label>
+              <Input id="email" type="email" value={formData.adopterEmail} onChange={e => setFormData(prev => ({ ...prev, adopterEmail: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Telefone</Label>
+              <Input id="phone" value={formData.adopterPhone} onChange={e => setFormData(prev => ({ ...prev, adopterPhone: e.target.value }))} required disabled={isPending} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Endereço</Label>
+              <Input id="address" value={formData.adopterAddress} onChange={e => setFormData(prev => ({ ...prev, adopterAddress: e.target.value }))} required disabled={isPending} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="petId">Escolha o Pet</Label>
+            <Select value={formData.petId} onValueChange={handlePetChange} disabled={isPending}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um pet..." />
+              </SelectTrigger>
+              <SelectContent>
+                {pets.filter(p => p.status === 'disponivel').map(pet => (
+                  <SelectItem key={pet.id} value={pet.id.toString()}>{pet.name} - {pet.species}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {selectedPet && (
+            <div className="p-4 bg-muted/50 rounded-lg border">
+              <h4 className="font-semibold">Detalhes do Pet</h4>
+              <p><strong>Espécie:</strong> {selectedPet.species}</p>
+              <p><strong>Idade:</strong> {new Date().getFullYear() - new Date(selectedPet.birthDate).getFullYear()} anos</p>
+              <p><strong>Tamanho:</strong> {selectedPet.tamanho}</p>
+            </div>
+          )}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>Cancelar</Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Enviando..." : "Enviar Pedido"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // O resto do arquivo continua aqui...
 
 
 // Hero Section Component
 const HeroSection = () => {
+  const [isAdoptionFormOpen, setIsAdoptionFormOpen] = useState(false);
+
+  const { data: pets } = useQuery<Pet[]>({ 
+    queryKey: ['pets', 'all', 'disponivel'], 
+    queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel`).then(res => res.json()),
+    initialData: [],
+  });
+
   return (
-    <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background with gradient overlay */}
-      <div className="absolute inset-0">
-        <img
-          src={heroImage}
-          alt="Pets felizes no abrigo"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-hero opacity-75"></div>
-      </div>
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 text-center text-white">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-            Encontre seu
-            <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Melhor Amigo
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-            Conectamos corações. Cada pet merece uma família amorosa,
-            e cada família merece a alegria de um companheiro fiel.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              className="bg-white text-primary hover:bg-white/90 hover:shadow-glow transition-all duration-300 px-8 py-6 text-lg font-semibold"
-              onClick={() => document.getElementById('pets')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              Ver Pets Disponíveis
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-white text-primary hover:bg-white/90 hover:shadow-glow transition-all duration-300 px-8 py-6 text-lg font-semibold"
-              onClick={() => document.getElementById('how-to-adopt')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              Adotar Agora
-            </Button>
-          </div>
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                <Heart className="w-8 h-8 text-white" />
-              </div>
-              <div className="text-3xl font-bold">500+</div>
-              <div className="text-white/80">Pets Adotados</div>
+    <>
+      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background with gradient overlay */}
+        <div className="absolute inset-0">
+          <img
+            src={heroImage}
+            alt="Pets felizes no abrigo"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-hero opacity-75"></div>
+        </div>
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 text-center text-white">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+              Encontre seu
+              <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Melhor Amigo
+              </span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto leading-relaxed">
+              Conectamos corações. Cada pet merece uma família amorosa,
+              e cada família merece a alegria de um companheiro fiel.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Button
+                size="lg"
+                className="bg-white text-primary hover:bg-white/90 hover:shadow-glow transition-all duration-300 px-8 py-6 text-lg font-semibold"
+                onClick={() => document.getElementById('pets')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Ver Pets Disponíveis
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="bg-white text-primary hover:bg-white/90 hover:shadow-glow transition-all duration-300 px-8 py-6 text-lg font-semibold"
+                onClick={() => setIsAdoptionFormOpen(true)}
+              >
+                <Heart className="w-5 h-5 mr-2" />
+                Adotar Agora
+              </Button>
             </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                <Users className="w-8 h-8 text-white" />
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16 pt-8">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                  <Heart className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl font-bold">500+</div>
+                <div className="text-white/80">Pets Adotados</div>
               </div>
-              <div className="text-3xl font-bold">1000+</div>
-              <div className="text-white/80">Famílias Felizes</div>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
-                <Home className="w-8 h-8 text-white" />
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl font-bold">1000+</div>
+                <div className="text-white/80">Famílias Felizes</div>
               </div>
-              <div className="text-3xl font-bold">50+</div>
-              <div className="text-white/80">Pets Disponíveis</div>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                  <Home className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl font-bold">50+</div>
+                <div className="text-white/80">Pets Disponíveis</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <div className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-white/60 rounded-full mt-2"></div>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="w-6 h-10 border-2 border-white/60 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white/60 rounded-full mt-2"></div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+      <AdoptionFormModal 
+        isOpen={isAdoptionFormOpen} 
+        onClose={() => setIsAdoptionFormOpen(false)} 
+        pets={pets || []} 
+      />
+    </>
   );
 };
 
@@ -487,7 +617,7 @@ const PetsSection = () => {
   });
 
   const handleAdopt = (petId: number) => {
-    setAdoptionPetId(petId);
+    document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleConfirmAdoption = (adopterId: string) => {
@@ -622,7 +752,7 @@ const PetsSection = () => {
             isOpen={!!selectedPet}
             onClose={() => setSelectedPet(null)}
             onAdopt={handleAdopt}
-            isAdopting={adoptPetMutation.isPending}
+            isAdopting={false}
           />
         )}
 
@@ -767,257 +897,7 @@ const HowToAdoptSection = () => {
   );
 };
 
-// Register Pet Form Component
-const RegisterPetForm = () => {
-  const [formData, setFormData] = useState({
-    nome: "",
-    especie: "",
-    dataNascimento: "",
-    descricao: "",
-    tamanho: "",
-    personalidade: "",
-    imagem: null as File | null,
-  });
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
 
-  const createPetMutation = useMutation({
-    mutationFn: async (newPet: FormData) => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/pets`, {
-        method: "POST",
-        body: newPet,
-      });
-      if (!response.ok) {
-        throw new Error("Falha ao cadastrar o pet.");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Sucesso!",
-        description: "Pet cadastrado com sucesso!",
-      });
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
-      setFormData({
-        nome: "",
-        especie: "",
-        dataNascimento: "",
-        descricao: "",
-        tamanho: "",
-        personalidade: "",
-        imagem: null,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível cadastrar o pet.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const data = new FormData();
-    data.append("name", formData.nome);
-    data.append("species", formData.especie);
-    data.append("birthDate", formData.dataNascimento);
-    data.append("description", formData.descricao);
-    if (formData.tamanho) data.append("tamanho", formData.tamanho);
-    if (formData.personalidade) data.append("personalidade", formData.personalidade);
-    if (formData.imagem) data.append("image", formData.imagem);
-
-    createPetMutation.mutate(data);
-  };
-
-  const handleInputChange = (field: string, value: string | File | null) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  return (
-    <section id="register-pet" className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              <span className="bg-gradient-primary bg-clip-text text-transparent">Cadastrar</span> Pet
-            </h2>
-            <p className="text-xl text-muted-foreground">
-              Ajude-nos a encontrar um lar amoroso para um pet especial.
-              Preencha as informações abaixo para cadastrar um novo pet.
-            </p>
-          </div>
-          {/* Form */}
-          <Card className="bg-card border-border shadow-card">
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
-                  <PlusCircle className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-foreground">Novo Pet</h3>
-                  <p className="text-muted-foreground">Preencha os dados do pet</p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Nome do Pet */}
-                <div className="space-y-2">
-                  <Label htmlFor="nome" className="text-foreground font-semibold">
-                    Nome do Pet *
-                  </Label>
-                  <Input
-                    id="nome"
-                    placeholder="Digite o nome do pet"
-                    value={formData.nome}
-                    onChange={(e) => handleInputChange("nome", e.target.value)}
-                    required
-                    className="bg-background border-border"
-                  />
-                </div>
-                {/* Espécie e Tamanho */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="especie" className="text-foreground font-semibold">
-                      Espécie *
-                    </Label>
-                    <Select
-                      value={formData.especie}
-                      onValueChange={(value) => handleInputChange("especie", value)}
-                    >
-                      <SelectTrigger id="especie" className="bg-background border-border">
-                        <SelectValue placeholder="Selecione a espécie" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CACHORRO">Cachorro</SelectItem>
-                        <SelectItem value="GATO">Gato</SelectItem>
-                        <SelectItem value="COELHO">Coelho</SelectItem>
-                        <SelectItem value="HAMSTER">Hamster</SelectItem>
-                        <SelectItem value="PASSARO">Pássaro</SelectItem>
-                        <SelectItem value="OUTRO">Outro</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tamanho" className="text-foreground font-semibold">
-                      Tamanho
-                    </Label>
-                    <Select
-                      value={formData.tamanho}
-                      onValueChange={(value) => handleInputChange("tamanho", value)}
-                    >
-                      <SelectTrigger id="tamanho" className="bg-background border-border">
-                        <SelectValue placeholder="Selecione o tamanho" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PEQUENO">Pequeno</SelectItem>
-                        <SelectItem value="MEDIO">Médio</SelectItem>
-                        <SelectItem value="GRANDE">Grande</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                {/* Data de Nascimento */}
-                <div className="space-y-2">
-                  <Label htmlFor="dataNascimento" className="text-foreground font-semibold">
-                    Data de Nascimento (aproximada) *
-                  </Label>
-                  <Input
-                    id="dataNascimento"
-                    type="date"
-                    value={formData.dataNascimento}
-                    onChange={(e) => handleInputChange("dataNascimento", e.target.value)}
-                    required
-                    className="bg-background border-border"
-                  />
-                </div>
-                {/* Personalidade */}
-                <div className="space-y-2">
-                  <Label htmlFor="personalidade" className="text-foreground font-semibold">
-                    Personalidade
-                  </Label>
-                  <Input
-                    id="personalidade"
-                    placeholder="Ex: Brincalhão, Carinhoso, Calmo (separado por vírgulas)"
-                    value={formData.personalidade}
-                    onChange={(e) => handleInputChange("personalidade", e.target.value)}
-                    className="bg-background border-border"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Descreva as características da personalidade separadas por vírgulas
-                  </p>
-                </div>
-                {/* Descrição */}
-                <div className="space-y-2">
-                  <Label htmlFor="descricao" className="text-foreground font-semibold">
-                    Descrição *
-                  </Label>
-                  <Textarea
-                    id="descricao"
-                    placeholder="Conte sobre a personalidade do pet, cuidados especiais, comportamento..."
-                    value={formData.descricao}
-                    onChange={(e) => handleInputChange("descricao", e.target.value)}
-                    required
-                    rows={4}
-                    className="bg-background border-border"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Forneça uma descrição detalhada que ajude futuros adotantes a conhecer o pet
-                  </p>
-                </div>
-                {/* Imagem do Pet */}
-                <div className="space-y-2">
-                  <Label htmlFor="imagem" className="text-foreground font-semibold">
-                    Imagem do Pet
-                  </Label>
-                  <Input
-                    id="imagem"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleInputChange("imagem", e.target.files ? e.target.files[0] : null)}
-                    className="bg-background border-border"
-                  />
-                </div>
-                {/* Submit Button */}
-                <div className="pt-6">
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300"
-                    size="lg"
-                    disabled={createPetMutation.isPending}
-                  >
-                    {createPetMutation.isPending ? "Cadastrando..." : "Cadastrar Pet"}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-          {/* Info Card */}
-          <div className="mt-8 bg-gradient-primary/5 rounded-2xl p-6 border border-primary/20">
-            <div className="flex items-start space-x-4">
-              <Heart className="w-8 h-8 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <h4 className="text-lg font-semibold text-foreground mb-2">
-                  Obrigado por ajudar!
-                </h4>
-                <p className="text-muted-foreground text-sm">
-                  Cada pet cadastrado é uma nova oportunidade de encontrar uma família amorosa.
-                  Nossa equipe analisará as informações e o pet ficará disponível para adoção em breve.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 // Footer Component
 const Footer = () => {
@@ -1175,7 +1055,6 @@ const Index = () => {
         <HeroSection />
         <PetsSection />
         <HowToAdoptSection />
-        <RegisterPetForm />
       </main>
       <Footer />
     </div>
