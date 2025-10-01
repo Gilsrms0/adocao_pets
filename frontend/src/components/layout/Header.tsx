@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Heart, Menu, X, User as UserIcon, LogOut, PawPrint } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, PawPrint } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { LoginDialog, RegisterDialog } from "@/components/AuthDialogs";
 import {

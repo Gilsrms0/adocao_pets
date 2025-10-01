@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, PlusCircle, Facebook, Instagram, Twitter, Mail, MapPin } from "lucide-react";
+import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, Facebook, Instagram, Twitter, Mail, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-pets.jpg";
 import { useToast } from "@/components/ui/use-toast";
@@ -26,16 +25,6 @@ interface Pet {
   imageUrl?: string;
   tamanho?: "PEQUENO" | "MEDIO" | "GRANDE";
   personalidade?: string;
-}
-
-
-
-interface AdopterFormData {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  petId: string;
 }
 
 const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose: () => void; pets: Pet[]; }) => {
@@ -615,7 +604,7 @@ const PetsSection = () => {
            pet.description.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-  const handleAdopt = (petId: number) => {
+  const handleAdopt = () => {
     document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -936,7 +925,7 @@ const Footer = () => {
             </div>
             <p className="text-muted-foreground leading-relaxed">
               Conectamos corações e criamos famílias. Nosso objetivo é encontrar
-              o lar perfeito para cada pet e o companheiro ideal para cada família.
+              o lar perfeito para cada aumigo e o companheiro ideal para cada família.
             </p>
             <div className="flex space-x-3">
               {socialLinks.map((social, index) => (
