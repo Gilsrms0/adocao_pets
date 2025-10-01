@@ -90,7 +90,7 @@ const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose
         <DialogHeader>
           <DialogTitle>Formulário de Adoção</DialogTitle>
           <DialogDescription>
-            Preencha seus dados e escolha o pet que deseja adotar. Entraremos em contato em breve!
+            Preencha seus dados e escolha o aumigo que deseja adotar. Entraremos em contato em breve!
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -113,10 +113,10 @@ const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="petId">Escolha o Pet</Label>
+            <Label htmlFor="petId">Escolha o Aumigo</Label>
             <Select value={formData.petId} onValueChange={handlePetChange} disabled={isPending}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione um pet..." />
+                <SelectValue placeholder="Selecione um aumigo..." />
               </SelectTrigger>
               <SelectContent>
                 {pets.filter(p => p.status === 'disponivel').map(pet => (
@@ -127,7 +127,7 @@ const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose
           </div>
           {selectedPet && (
             <div className="p-4 bg-muted/50 rounded-lg border">
-              <h4 className="font-semibold">Detalhes do Pet</h4>
+              <h4 className="font-semibold">Detalhes do Aumigo</h4>
               <p><strong>Espécie:</strong> {selectedPet.species}</p>
               <p><strong>Idade:</strong> {new Date().getFullYear() - new Date(selectedPet.birthDate).getFullYear()} anos</p>
               <p><strong>Tamanho:</strong> {selectedPet.tamanho}</p>
@@ -189,7 +189,7 @@ const HeroSection = () => {
                 onClick={() => document.getElementById('pets')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 <Heart className="w-5 h-5 mr-2" />
-                Ver Pets Disponíveis
+                Ver Aumigos Disponíveis
               </Button>
               <Button
                 variant="outline"
@@ -208,7 +208,7 @@ const HeroSection = () => {
                   <Heart className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-3xl font-bold">500+</div>
-                <div className="text-white/80">Pets Adotados</div>
+                <div className="text-white/80">Aumigos Adotados</div>
               </div>
               <div className="text-center">
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
@@ -222,7 +222,7 @@ const HeroSection = () => {
                   <Home className="w-8 h-8 text-white" />
                 </div>
                 <div className="text-3xl font-bold">50+</div>
-                <div className="text-white/80">Pets Disponíveis</div>
+                <div className="text-white/80">Aumigos Disponíveis</div>
               </div>
             </div>
           </div>
@@ -635,10 +635,10 @@ const PetsSection = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Nossos <span className="bg-gradient-primary bg-clip-text text-transparent">Pets Especiais</span>
+            Nossos <span className="bg-gradient-primary bg-clip-text text-transparent">Aumigos Especiais</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Conheça nossos pets que estão em busca de uma família amorosa.
+            Conheça nossos aumigos que estão em busca de uma família amorosa.
             Cada um tem sua personalidade única e muito amor para oferecer.
           </p>
         </div>
@@ -664,6 +664,7 @@ const PetsSection = () => {
                   <SelectItem value="CACHORRO">Cachorro</SelectItem>
                   <SelectItem value="GATO">Gato</SelectItem>
                   <SelectItem value="COELHO">Coelho</SelectItem>
+                  <SelectItem value="PÁSSARO">Pássaro</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -725,7 +726,7 @@ const PetsSection = () => {
                 <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="w-12 h-12 text-muted-foreground" />
                 </div>
-                <h3 className="text-2xl font-semibold text-foreground mb-2">Nenhum pet encontrado</h3>
+                <h3 className="text-2xl font-semibold text-foreground mb-2">Nenhum aumigo encontrado</h3>
                 <p className="text-muted-foreground mb-6">
                   Tente ajustar os filtros ou termo de busca
                 </p>
@@ -846,7 +847,7 @@ const HowToAdoptSection = () => {
                 Pronto para Adotar?
               </h4>
               <p className="text-muted-foreground">
-                Faça parte da nossa família e dê uma nova chance a um pet especial.
+                Faça parte da nossa família e dê uma nova chance a um aumigo especial.
               </p>
             </div>
             <div className="space-y-4">
@@ -855,7 +856,7 @@ const HowToAdoptSection = () => {
                 size="lg"
               >
                 <Heart className="w-5 h-5 mr-2" />
-                Ver Pets Disponíveis
+                Ver Aumigos Disponíveis
               </Button>
               <Button
                 variant="outline"
@@ -875,7 +876,7 @@ const HowToAdoptSection = () => {
           </h3>
           <p className="text-muted-foreground mb-8 text-lg max-w-2xl mx-auto">
             Nossa equipe está sempre disponível para esclarecer qualquer dúvida
-            sobre adoção e ajudar você a encontrar o pet perfeito.
+            sobre adoção e ajudar você a encontrar o aumigo perfeito.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <div className="text-center">
@@ -908,7 +909,7 @@ const Footer = () => {
   ];
   const quickLinks = [
     { name: "Início", href: "#home" },
-    { name: "Pets Disponíveis", href: "#pets" },
+    { name: "Aumigos Disponíveis", href: "#pets" },
     { name: "Como Adotar", href: "#how-to-adopt" },
     { name: "Sobre Nós", href: "#about" }
   ];

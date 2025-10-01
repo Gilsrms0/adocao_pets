@@ -21,7 +21,7 @@ export const Header = () => {
 
   const navItems = [
     { name: "Início", href: "/#home" },
-    { name: "Pets", href: "/#pets" },
+    { name: "Aumigos", href: "/#pets" },
     { name: "Como Adotar", href: "/#how-to-adopt" },
   ];
 
@@ -34,19 +34,19 @@ export const Header = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              {/* Symbol */}
+              {/* Símbolo */}
               <div className="relative w-10 h-10 flex items-center justify-center">
-                {/* Heart (background) with gradient */}
+                {/* Coração (fundo) com gradiente */}
                 <div className="absolute inset-0 bg-gradient-primary rounded-full"></div>
-                {/* Paw icon on top */}
+                {/* Ícone de pata por cima */}
                 <PawPrint className="relative w-6 h-6 text-white" />
               </div>
-              {/* Text */}
+              {/* Texto */}
               <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                 AdoteMe
               </span>
             </Link>
-            {/* Desktop Navigation */}
+            {/* Navegação para Desktop */}
             <nav className="hidden md:flex items-center space-x-8">
               {navItems.map((item, index) => (
                 <a
@@ -59,7 +59,7 @@ export const Header = () => {
               ))}
             </nav>
             
-            {/* Auth Buttons / User Menu */}
+            {/* Botões de Autenticação / Menu do Usuário */}
             <div className="hidden md:flex items-center space-x-4">
               <ModeToggle />
               {isAuthenticated && user ? (
@@ -73,7 +73,7 @@ export const Header = () => {
                   <DropdownMenuContent>
                     <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    {user?.role === 'ADMIN' && ( // Conditionally render for ADMIN
+                    {user?.role === 'ADMIN' && ( // Renderização condicional para ADMIN
                       <DropdownMenuItem asChild>
                         <Link to="/admin">Dashboard Admin</Link>
                       </DropdownMenuItem>
@@ -97,7 +97,7 @@ export const Header = () => {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Botão do Menu Móvel */}
             <Button
               variant="ghost"
               size="sm"
@@ -107,7 +107,7 @@ export const Header = () => {
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </Button>
           </div>
-          {/* Mobile Navigation */}
+          {/* Navegação Móvel */}
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t border-border bg-background/95 backdrop-blur-md">
               <nav className="flex flex-col space-y-4">
