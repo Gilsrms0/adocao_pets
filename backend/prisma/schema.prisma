@@ -26,6 +26,7 @@ model Adotante {
   address   String
   imageUrl  String?
   adocoes   Adocao[]
+  adoptionRequests AdoptionRequest[] // Relação inversa adicionada
 }
 
 model Pet {
@@ -57,17 +58,19 @@ model Adocao {
 }
 
 model AdoptionRequest {
-  id             Int      @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
+  adotanteId     Int?      // Novo campo opcional para vincular ao adotante logado
+  adotante       Adotante? @relation(fields: [adotanteId], references: [id])
   adopterName    String
-  adopterEmail   String   @unique
+  adopterEmail   String
   adopterPhone   String
   adopterAddress String
   city           String
   state          String
   neighborhood   String
   number         String
-  status         String   @default("PENDING") // PENDING, APPROVED, DENIED
-  createdAt      DateTime @default(now())
+  status         String    @default("PENDING") // PENDING, APPROVED, DENIED
+  createdAt      DateTime  @default(now())
 
   pet   Pet @relation(fields: [petId], references: [id])
   petId Int

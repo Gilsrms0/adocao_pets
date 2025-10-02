@@ -1,75 +1,93 @@
+// DEPRECATED: Este controller está depreciado. A lógica de criação de adoção foi unificada com as solicitações de adoção (adoptionRequestController).
+// A criação final de uma adoção agora ocorre através da aprovação de uma AdoptionRequest.
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// Função para criar uma nova adoção
 export const createAdocao = async (req, res) => {
-  const { petId, adopterId } = req.body;
-
-  // Validação básica
-  if (!petId || !adopterId) {
-    return res.status(400).json({ message: 'petId e adopterId são obrigatórios.' });
-  }
+  const { petId, adotanteId, name, email, phone, address } = req.body;
 
   try {
-    // Usamos uma transação para garantir a consistência dos dados
-    const novaAdocao = await prisma.$transaction(async (tx) => {
-      // 1. Verifica se o pet existe e está disponível
-      const pet = await tx.pet.findUnique({
-        where: { id: petId },
-      });
-
-      if (!pet) {
-        throw new Error('Pet não encontrado.');
-      }
-
-      if (pet.status !== 'disponivel') {
-        throw new Error('Este pet não está disponível para adoção.');
-      }
-
-      // 2. Cria o registro de adoção
-      const adocao = await tx.adocao.create({
-        data: {
-          petId: petId,
-          adotanteId: parseInt(adopterId, 10), // Garante que o ID do adotante seja um número
-        },
-      });
-
-      // 3. Atualiza o status do pet para 'adotado'
-      await tx.pet.update({
-        where: { id: petId },
-        data: { status: 'adotado' },
-      });
-
-      return adocao;
+    // Verifica se o pet existe e está disponível
+    const pet = await prisma.pet.findUnique({
+      where: { id: parseInt(petId) },
     });
 
-    res.status(201).json(novaAdocao);
+    if (!pet) {
+      return res.status(404).json({ message: 'Pet não encontrado.' });
+    }
+
+    if (pet.status !== 'disponivel') {
+      return res.status(400).json({ message: 'Este pet não está disponível para adoção.' });
+    }
+
+    // Cria ou encontra o adotante
+    let adotante = await prisma.adotante.findUnique({
+      where: { id: parseInt(adotanteId) },
+    });
+
+    if (!adotante) {
+      // Se o adotante não existir, cria um novo
+      adotante = await prisma.adotante.create({
+        data: {
+          name,
+          email,
+          phone,
+          address,
+        },
+      });
+    }
+
+    // Cria a adoção
+    const adocao = await prisma.adocao.create({
+      data: {
+        petId: parseInt(petId),
+        adotanteId: adotante.id,
+      },
+    });
+
+    // Atualiza o status do pet para 'adotado'
+    await prisma.pet.update({
+      where: { id: parseInt(petId) },
+      data: { status: 'adotado' },
+    });
+
+    res.status(201).json(adocao);
   } catch (error) {
-    res.status(500).json({ message: error.message || 'Falha ao registrar a adoção.' });
+    res.status(500).json({ message: 'Erro ao registrar adoção.', error: error.message });
   }
 };
 
-// Função para buscar as adoções do usuário logado (a ser usada no perfil)
-export const getMinhasAdocoes = async (req, res) => {
-    // O ID do usuário é injetado no req pelo middleware de autenticação
-    const userId = req.user.id;
+export const getAdocoes = async (req, res) => {
+  try {
+    const adocoes = await prisma.adocao.findMany({
+      include: {
+        pet: true,
+        adotante: true,
+      },
+    });
+    res.status(200).json(adocoes);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar adoções.', error: error.message });
+  }
+};
 
-    try {
-        const adocoes = await prisma.adocao.findMany({
-            where: {
-                adotanteId: userId,
-            },
-            include: {
-                pet: true, // Inclui os detalhes do pet em cada adoção
-            },
-            orderBy: {
-                dataAdocao: 'desc',
-            }
-        });
-
-        res.status(200).json(adocoes);
-    } catch (error) {
-        res.status(500).json({ message: error.message || 'Falha ao buscar o histórico de adoções.' });
+export const getAdocaoById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const adocao = await prisma.adocao.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        pet: true,
+        adotante: true,
+      },
+    });
+    if (!adocao) {
+      return res.status(404).json({ message: 'Adoção não encontrada.' });
     }
+    res.status(200).json(adocao);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar adoção.', error: error.message });
+  }
 };

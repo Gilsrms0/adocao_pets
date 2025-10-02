@@ -34,7 +34,7 @@ export const LoginDialog = ({ open, onOpenChange, onSwitchToRegister }: AuthDial
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Falha no login.');
+        throw new Error(data.error || 'Falha no login.'); // Corrigido para data.error
       }
 
       login(data.token);
@@ -100,7 +100,7 @@ export const RegisterDialog = ({ open, onOpenChange, onSwitchToLogin }: AuthDial
         const data = await response.json();
   
         if (!response.ok) {
-          throw new Error(data.message || 'Falha no registro.');
+          throw new Error(data.error || 'Falha no registro.'); // Corrigido para data.error
         }
   
         login(data.token);

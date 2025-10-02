@@ -1,13 +1,44 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Iniciando o seeding do banco de dados...');
 
-  // Limpa a tabela de Pets antes de adicionar novos (opcional, para evitar duplicatas)
+  // Limpa as tabelas em ordem para evitar erros de chave estrangeira
+  await prisma.adoptionRequest.deleteMany({});
+  console.log('Tabela AdoptionRequest limpa.');
+  await prisma.adocao.deleteMany({});
+  console.log('Tabela Adocao limpa.');
   await prisma.pet.deleteMany({});
   console.log('Tabela Pet limpa.');
+  await prisma.user.deleteMany({ where: { role: 'ADOTANTE' } });
+  console.log('Contas de adotantes removidas.');
+
+  // --- Recriação do usuário administrador ---
+  console.log('Recriando o usuário administrador...');
+  // Deleta o usuário admin existente para evitar conflitos de case-sensitivity
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        equals: 'admin@adoteme.com',
+        mode: 'insensitive', // Garante que qualquer variação de case seja encontrada
+      },
+    },
+  });
+
+  const adminPassword = await bcrypt.hash('admin0793', 10);
+  const adminUser = await prisma.user.create({
+    data: {
+      email: 'admin@adoteme.com',
+      password: adminPassword,
+      name: 'Admin User',
+      role: 'ADMIN',
+    },
+  });
+  console.log(`Usuário administrador recriado com ID: ${adminUser.id}`);
+  // --- FIM DA RECRIAÇÃO ---
 
   const pet1 = await prisma.pet.create({
     data: {

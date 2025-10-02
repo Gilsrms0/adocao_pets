@@ -9,6 +9,8 @@ import NotFound from "./pages/NotFound";
 import ProfilePage from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAdoptionRequests from "./pages/AdminAdoptionRequests";
+import AdminPetManagement from "./pages/AdminPetManagement";
+import AdminAdopterManagement from "./pages/AdminAdopterManagement";
 
 const queryClient = new QueryClient();
 const App = () => (
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/perfil" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/solicitacoes" element={<AdminAdoptionRequests />} />
+            <Route path="/admin/pets" element={<AdminPetManagement />} />
+            <Route path="/admin/adotantes" element={<AdminAdopterManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

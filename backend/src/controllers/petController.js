@@ -35,8 +35,7 @@ export const createPet = async (req, res) => {
   const userId = req.userId; // Vem do verifyToken
 
   try {
-    if (!userId || req.userRole !== 'ADM') {
-      return res.status(403).json({ error: "Acesso negado. Apenas administradores podem cadastrar pets." });
+        if (!userId || req.userRole !== 'ADMIN') {      return res.status(403).json({ error: "Acesso negado. Apenas administradores podem cadastrar pets." });
     }
     
     if (!birthDate) {

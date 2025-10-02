@@ -49,58 +49,89 @@ const AdoptionPage = () => {
   const [adopterEmail, setAdopterEmail] = useState(user?.email || '');
   const [adopterPhone, setAdopterPhone] = useState('');
   const [adopterAddress, setAdopterAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [number, setNumber] = useState('');
 
   useEffect(() => {
     if (user) {
       setAdopterName(user.name);
       setAdopterEmail(user.email);
+      // Se o user.address for um objeto com city, state, etc., preencher aqui
+      // Por enquanto, assumimos que é uma string e os campos detalhados serão preenchidos manualmente
     }
   }, [user]);
 
   // Mutation for adoption
   const adoptPetMutation = useMutation({
-    mutationFn: async (adopterData: { name: string; email: string; phone: string; address: string; petId: number }) => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/adocoes`, {
+    mutationFn: async (adopterData: { 
+      adopterName: string; 
+      adopterEmail: string; 
+      adopterPhone: string; 
+      adopterAddress: string; 
+      city: string; 
+      state: string; 
+      neighborhood: string; 
+      number: string; 
+      petId: number; 
+      adotanteId?: number 
+    }) => {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          // Não precisamos de token aqui, pois a rota de solicitação é pública
+          // 'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(adopterData),
       });
       if (!response.ok) {
-        throw new Error('Falha ao registrar a adoção.');
+        throw new Error('Falha ao registrar a solicitação de adoção.');
       }
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: 'Sucesso!', description: `Parabéns! Você iniciou o processo de adoção de ${pet?.name}.` });
-      navigate('/perfil'); // Redireciona para o perfil após a adoção
+      toast({ title: 'Sucesso!', description: `Parabéns! Sua solicitação de adoção para ${pet?.name} foi enviada e está aguardando aprovação.` });
+      navigate('/perfil'); // Redireciona para o perfil após a solicitação
     },
     onError: (error) => {
-      toast({ title: 'Erro', description: error.message || 'Não foi possível registrar a adoção.', variant: 'destructive' });
+      console.error("Adoption mutation error:", error); // Adicionado para depuração
+      toast({ title: 'Erro', description: error.message || 'Não foi possível registrar a solicitação de adoção.', variant: 'destructive' });
     },
   });
 
   const handleSubmitAdoption = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!petId || !user) {
-      toast({ title: 'Erro', description: 'Pet ou usuário não identificado.', variant: 'destructive' });
+    console.log("Submitting form for petId:", petId); // Adicionado para depuração
+    if (!petId) {
+      toast({ title: 'Erro', description: 'Pet não identificado.', variant: 'destructive' });
       return;
     }
 
-    // If not authenticated, we need to register/login first
+    // Se não autenticado, precisamos registrar/logar primeiro
     if (!isAuthenticated) {
-        setDialogOpen('login'); // Or register
+        setDialogOpen('login'); // Ou register
         return;
     }
 
+    // Adicionar validação para todos os campos obrigatórios
+    if (!adopterName || !adopterEmail || !adopterPhone || !adopterAddress || !city || !state || !neighborhood || !number) {
+      toast({ title: 'Erro', description: 'Por favor, preencha todos os campos obrigatórios do formulário.', variant: 'destructive' });
+      return;
+    }
+
     adoptPetMutation.mutate({ 
-        name: adopterName, 
-        email: adopterEmail, 
-        phone: adopterPhone, 
-        address: adopterAddress, 
-        petId: parseInt(petId, 10) 
+        adopterName, 
+        adopterEmail, 
+        adopterPhone, 
+        adopterAddress, 
+        city, 
+        state, 
+        neighborhood, 
+        number, 
+        petId: parseInt(petId, 10), 
+        adotanteId: user?.id // Inclui adotanteId se o usuário estiver logado
     });
   };
 
@@ -152,8 +183,8 @@ const AdoptionPage = () => {
         ) : (
           <Card className="max-w-3xl mx-auto mt-8">
             <CardHeader>
-              <CardTitle className="text-2xl">Seus Dados para Adoção</CardTitle>
-              <CardDescription>Confirme seus dados para finalizar o processo de adoção.</CardDescription>
+              <CardTitle className="text-2xl">Seus Dados para Solicitação de Adoção</CardTitle>
+              <CardDescription>Preencha seus dados para enviar a solicitação de adoção.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmitAdoption} className="space-y-4">
@@ -173,12 +204,32 @@ const AdoptionPage = () => {
                     <Input id="adopterPhone" value={adopterPhone} onChange={(e) => setAdopterPhone(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="adopterAddress">Endereço</Label>
+                    <Label htmlFor="adopterAddress">Endereço (Rua, Avenida, etc.)</Label>
                     <Input id="adopterAddress" value={adopterAddress} onChange={(e) => setAdopterAddress(e.target.value)} required />
                   </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="number">Número</Label>
+                    <Input id="number" value={number} onChange={(e) => setNumber(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="neighborhood">Bairro</Label>
+                    <Input id="neighborhood" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} required />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Cidade</Label>
+                    <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="state">Estado</Label>
+                    <Input id="state" value={state} onChange={(e) => setState(e.target.value)} required />
+                  </div>
+                </div>
                 <Button type="submit" className="w-full" disabled={adoptPetMutation.isPending}>
-                  {adoptPetMutation.isPending ? 'Finalizando Adoção...' : 'Finalizar Adoção'}
+                  {adoptPetMutation.isPending ? 'Enviando Solicitação...' : 'Enviar Solicitação de Adoção'}
                 </Button>
               </form>
             </CardContent>

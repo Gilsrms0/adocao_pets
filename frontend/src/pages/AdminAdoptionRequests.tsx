@@ -1,143 +1,164 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from "@/components/layout/Header";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, X } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { Navigate } from 'react-router-dom';
 
-// Tipos
 interface Pet {
   id: number;
   name: string;
+  species: string;
+  birthDate: string;
+  description: string;
+  status: "disponivel" | "adotado";
+  imageUrl?: string;
+  tamanho?: "PEQUENO" | "MEDIO" | "GRANDE";
+  personalidade?: string;
 }
 
 interface AdoptionRequest {
   id: number;
   adopterName: string;
   adopterEmail: string;
-  status: string;
+  adopterPhone: string;
+  adopterAddress: string;
+  city: string;
+  state: string;
+  neighborhood: string;
+  number: string;
+  status: "PENDING" | "APPROVED" | "DENIED";
   createdAt: string;
   pet: Pet;
 }
 
 const AdminAdoptionRequests = () => {
-  const { user, isAuthenticated, token } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const fetchAdoptionRequests = async () => {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('Falha ao buscar solicitações.');
-    return response.json();
-  };
-
-  const { data: requests, isLoading, isError } = useQuery<AdoptionRequest[]>({ 
-    queryKey: ['adoptionRequests'], 
-    queryFn: fetchAdoptionRequests 
-  });
-
-  const updateRequestMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests/${id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ status }),
-        }
-      );
-      if (!response.ok) throw new Error(`Falha ao ${status === 'APPROVED' ? 'aprovar' : 'recusar'} a solicitação.`);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({ title: "Sucesso!", description: "O status da solicitação foi atualizado." });
-      queryClient.invalidateQueries({ queryKey: ['adoptionRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
-    },
-    onError: (error) => {
-      toast({ title: "Erro", description: error.message, variant: "destructive" });
-    },
-  });
-
-  const handleUpdateRequest = (id: number, status: 'APPROVED' | 'DENIED') => {
-    updateRequestMutation.mutate({ id, status });
-  };
+  const { token, user, isAuthenticated } = useAuth();
 
   if (!isAuthenticated || user?.role !== 'ADMIN') {
     return <Navigate to="/" replace />;
   }
 
-  const pendingRequests = requests?.filter(r => r.status === 'PENDING') || [];
-  const processedRequests = requests?.filter(r => r.status !== 'PENDING') || [];
+  const { data: requests, isLoading, isError, error } = useQuery<AdoptionRequest[]> ({
+    queryKey: ['adoptionRequests'],
+    queryFn: async () => {
+      if (!token) {
+        throw new Error('Token de autenticação não disponível.');
+      }
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao buscar solicitações de adoção.');
+      }
+      return response.json();
+    },
+    enabled: !!token,
+  });
+
+  const updateRequestStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: "APPROVED" | "DENIED" }) => {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) {
+        throw new Error('Erro ao atualizar status da solicitação.');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adoptionRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['pets'] }); // Invalida cache de pets para atualizar status
+      toast({ title: "Sucesso!", description: "O status da solicitação foi atualizado." });
+    },
+    onError: (err) => {
+      toast({ title: "Erro", description: err.message, variant: "destructive" });
+    },
+  });
+
+  if (isLoading) return <div className="text-center">Carregando solicitações...</div>;
+  if (isError) return <div className="text-center text-destructive">Erro: {error?.message}</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 py-24">
-        <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Gerenciar Solicitações de Adoção</h1>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Solicitações Pendentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading && <p>Carregando...</p>}
-            {isError && <p className="text-destructive">Erro ao carregar.</p>}
-            <div className="space-y-4">
-              {pendingRequests.length > 0 ? (
-                pendingRequests.map(req => (
-                  <div key={req.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg border bg-card">
-                    <div>
-                      <p className="font-semibold">{req.adopterName} <span className="text-sm text-muted-foreground">({req.adopterEmail})</span></p>
-                      <p className="text-sm">Deseja adotar: <span className="font-medium">{req.pet.name}</span></p>
-                    </div>
-                    <div className="flex gap-2 mt-2 sm:mt-0">
-                      <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-100 hover:text-green-700" onClick={() => handleUpdateRequest(req.id, 'APPROVED')} disabled={updateRequestMutation.isPending}>
-                        <Check className="h-4 w-4 mr-2" /> Aprovar
-                      </Button>
-                      <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-100 hover:text-red-700" onClick={() => handleUpdateRequest(req.id, 'DENIED')} disabled={updateRequestMutation.isPending}>
-                        <X className="h-4 w-4 mr-2" /> Recusar
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground text-center py-4">Nenhuma solicitação pendente.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <h1 className="text-4xl font-bold text-foreground mb-8 text-center">Gerenciamento de Solicitações de Adoção</h1>
 
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Solicitações Processadas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {processedRequests.length > 0 ? (
-                processedRequests.map(req => (
-                  <div key={req.id} className="flex items-center justify-between p-4 rounded-lg border bg-card-muted">
-                    <div>
-                      <p className="font-semibold">{req.adopterName}</p>
-                      <p className="text-sm">Pet: <span className="font-medium">{req.pet.name}</span></p>
-                    </div>
-                    <Badge variant={req.status === 'APPROVED' ? 'default' : 'destructive'}>{req.status}</Badge>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground text-center py-4">Nenhuma solicitação processada.</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
+        <div className="bg-card p-6 rounded-lg shadow-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Adotante</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Endereço</TableHead>
+                <TableHead>Cidade</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Bairro</TableHead>
+                <TableHead>Número</TableHead>
+                <TableHead>Pet</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {requests?.map((req) => (
+                <TableRow key={req.id}>
+                  <TableCell>{req.id}</TableCell>
+                  <TableCell>{req.adopterName}</TableCell>
+                  <TableCell>{req.adopterEmail}</TableCell>
+                  <TableCell>{req.adopterPhone}</TableCell>
+                  <TableCell>{req.adopterAddress}</TableCell>
+                  <TableCell>{req.city}</TableCell>
+                  <TableCell>{req.state}</TableCell>
+                  <TableCell>{req.neighborhood}</TableCell>
+                  <TableCell>{req.number}</TableCell>
+                  <TableCell>{req.pet.name}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={req.status === 'APPROVED' ? 'default' : req.status === 'PENDING' ? 'secondary' : 'destructive'}
+                    >
+                      {req.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{new Date(req.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell className="text-right">
+                    {req.status === 'PENDING' && (
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateRequestStatusMutation.mutate({ id: req.id, status: 'APPROVED' })}
+                          disabled={updateRequestStatusMutation.isPending}
+                        >
+                          Aprovar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => updateRequestStatusMutation.mutate({ id: req.id, status: 'DENIED' })}
+                          disabled={updateRequestStatusMutation.isPending}
+                        >
+                          Recusar
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </main>
     </div>
   );
