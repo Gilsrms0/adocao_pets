@@ -75,6 +75,9 @@ export const createAdoptionRequest = async (req, res) => {
 export const getAdoptionRequests = async (req, res) => {
   try {
     const requests = await prisma.adoptionRequest.findMany({
+      include: {
+        pet: true, // Inclui os dados do pet relacionado
+      },
       orderBy: {
         createdAt: 'desc',
       },
