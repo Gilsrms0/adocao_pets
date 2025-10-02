@@ -2,12 +2,19 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// 1. Criar uma nova solicitação de adoção
+// 1. Criar uma nova solicitação de adoção (LÓGICA ATUALIZADA)
 export const createAdoptionRequest = async (req, res) => {
-  const { adopterName, adopterEmail, adopterPhone, adopterAddress, city, state, neighborhood, number, petId, adotanteId } = req.body;
+  // O `userId` vem do middleware `verifyToken`
+  const { userId } = req;
+  const { adopterName, adopterEmail, adopterPhone, adopterAddress, city, state, neighborhood, number, petId } = req.body;
+
+  // Validação básica de entrada
+  if (!adopterName || !adopterEmail || !adopterPhone || !adopterAddress || !city || !state || !neighborhood || !number || !petId) {
+    return res.status(400).json({ message: 'Todos os campos do formulário são obrigatórios.' });
+  }
 
   try {
-    // Verifica se já existe uma solicitação para o mesmo pet
+    // Verifica se já existe uma solicitação PENDENTE para o mesmo pet
     const existingRequest = await prisma.adoptionRequest.findFirst({
       where: { 
         petId: parseInt(petId),
@@ -19,6 +26,29 @@ export const createAdoptionRequest = async (req, res) => {
       return res.status(400).json({ message: 'Já existe uma solicitação pendente para este pet.' });
     }
 
+    // Busca o usuário logado para garantir consistência de email
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || user.email !== adopterEmail) {
+        return res.status(403).json({ message: "O e-mail do formulário não corresponde ao do usuário autenticado." });
+    }
+
+    // Encontra ou cria o perfil de Adotante
+    let adotante = await prisma.adotante.findUnique({
+        where: { email: user.email },
+    });
+
+    if (!adotante) {
+        adotante = await prisma.adotante.create({
+            data: {
+                name: adopterName,
+                email: adopterEmail,
+                phone: adopterPhone,
+                address: `${adopterAddress}, ${number}, ${neighborhood}, ${city} - ${state}`,
+            },
+        });
+    }
+
+    // Cria a solicitação de adoção usando o ID do adotante encontrado ou criado
     const newRequest = await prisma.adoptionRequest.create({
       data: {
         adopterName,
@@ -30,11 +60,13 @@ export const createAdoptionRequest = async (req, res) => {
         neighborhood,
         number,
         petId: parseInt(petId),
-        adotanteId: adotanteId ? parseInt(adotanteId) : null, // Adicionado adotanteId
+        adotanteId: adotante.id, // USA O ID CORRETO
       },
     });
+
     res.status(201).json(newRequest);
   } catch (error) {
+    console.error("Erro ao criar solicitação de adoção:", error);
     res.status(500).json({ message: 'Erro ao criar solicitação de adoção.', error: error.message });
   }
 };

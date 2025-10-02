@@ -63,7 +63,7 @@ const AdoptionPage = () => {
     }
   }, [user]);
 
-  // Mutation for adoption
+  // Mutation for adoption (CORRIGIDA)
   const adoptPetMutation = useMutation({
     mutationFn: async (adopterData: { 
       adopterName: string; 
@@ -75,19 +75,19 @@ const AdoptionPage = () => {
       neighborhood: string; 
       number: string; 
       petId: number; 
-      adotanteId?: number 
     }) => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Não precisamos de token aqui, pois a rota de solicitação é pública
-          // 'Authorization': `Bearer ${token}`,
+          // A rota agora é protegida, então o token é necessário
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify(adopterData),
       });
       if (!response.ok) {
-        throw new Error('Falha ao registrar a solicitação de adoção.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao registrar a solicitação de adoção.');
       }
       return response.json();
     },
@@ -103,24 +103,22 @@ const AdoptionPage = () => {
 
   const handleSubmitAdoption = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting form for petId:", petId); // Adicionado para depuração
     if (!petId) {
       toast({ title: 'Erro', description: 'Pet não identificado.', variant: 'destructive' });
       return;
     }
 
-    // Se não autenticado, precisamos registrar/logar primeiro
     if (!isAuthenticated) {
-        setDialogOpen('login'); // Ou register
+        setDialogOpen('login');
         return;
     }
 
-    // Adicionar validação para todos os campos obrigatórios
     if (!adopterName || !adopterEmail || !adopterPhone || !adopterAddress || !city || !state || !neighborhood || !number) {
       toast({ title: 'Erro', description: 'Por favor, preencha todos os campos obrigatórios do formulário.', variant: 'destructive' });
       return;
     }
 
+    // O `adotanteId` foi removido, o backend vai identificá-lo pelo token
     adoptPetMutation.mutate({ 
         adopterName, 
         adopterEmail, 
@@ -131,7 +129,6 @@ const AdoptionPage = () => {
         neighborhood, 
         number, 
         petId: parseInt(petId, 10), 
-        adotanteId: user?.id // Inclui adotanteId se o usuário estiver logado
     });
   };
 

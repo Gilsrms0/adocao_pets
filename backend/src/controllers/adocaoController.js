@@ -91,3 +91,45 @@ export const getAdocaoById = async (req, res) => {
     res.status(500).json({ message: 'Erro ao buscar adoção.', error: error.message });
   }
 };
+
+// Nova função para buscar o histórico de adoções do usuário logado
+export const getMyAdocoes = async (req, res) => {
+  const { userId } = req; // ID do usuário vem do middleware verifyToken
+
+  try {
+    // 1. Buscar o usuário para obter o email
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    // 2. Usar o email para encontrar o perfil do adotante
+    const adotante = await prisma.adotante.findUnique({
+      where: { email: user.email },
+    });
+
+    if (!adotante) {
+      return res.status(200).json([]); // Se não há perfil de adotante, não há adoções
+    }
+
+    // 3. Buscar as adoções associadas a esse adotante
+    const adocoes = await prisma.adocao.findMany({
+      where: { adotanteId: adotante.id },
+      include: {
+        pet: true, // Inclui os dados do pet em cada adoção
+      },
+      orderBy: {
+        dataAdocao: 'desc', // Ordena pelas mais recentes
+      },
+    });
+
+    res.status(200).json(adocoes);
+  } catch (error) {
+    console.error("Erro ao buscar histórico de adoções:", error);
+    res.status(500).json({ error: "Erro interno ao buscar histórico de adoções." });
+  }
+};

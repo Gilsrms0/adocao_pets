@@ -77,3 +77,46 @@ export const deleteAdotante = async (req, res) => {
     res.status(500).json({ error: "Erro ao deletar adotante." });
   }
 };
+
+// Nova função para buscar os pedidos de adoção do usuário logado
+export const getMyAdoptionRequests = async (req, res) => {
+  const { userId } = req; // ID do usuário vem do middleware verifyToken
+
+  try {
+    // 1. Buscar o usuário para obter o email
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    // 2. Usar o email para encontrar o perfil do adotante
+    const adotante = await prisma.adotante.findUnique({
+      where: { email: user.email },
+    });
+
+    if (!adotante) {
+      // Se não houver perfil de adotante, significa que ele ainda não preencheu
+      return res.status(200).json([]); // Retorna um array vazio
+    }
+
+    // 3. Buscar os pedidos de adoção associados a esse adotante
+    const adoptionRequests = await prisma.adoptionRequest.findMany({
+      where: { adotanteId: adotante.id },
+      include: {
+        pet: true, // Inclui os dados do pet em cada pedido
+      },
+      orderBy: {
+        createdAt: 'desc', // Ordena pelos mais recentes
+      },
+    });
+
+    res.status(200).json(adoptionRequests);
+  } catch (error) {
+    console.error("Erro ao buscar pedidos de adoção:", error);
+    res.status(500).json({ error: "Erro interno ao buscar pedidos de adoção." });
+  }
+};

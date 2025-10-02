@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-pets.jpg";
 import { useToast } from "@/components/ui/use-toast";
 import { Header } from "@/components/layout/Header";
+import { LoginDialog, RegisterDialog } from "@/components/AuthDialogs"; // Import Login/Register Dialogs
 
 // Types
 interface Pet {
@@ -27,17 +29,26 @@ interface Pet {
   personalidade?: string;
 }
 
-const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose: () => void; pets: Pet[]; }) => {
+const AdoptionFormModal = ({ isOpen, onClose, pets, user, token }: { isOpen: boolean; onClose: () => void; pets: Pet[]; user: any; token: string | null; }) => {
   const [formData, setFormData] = useState({ adopterName: "", adopterEmail: "", adopterPhone: "", adopterAddress: "", petId: "", city: "", state: "", neighborhood: "", number: "" });
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({ ...prev, adopterName: user.name, adopterEmail: user.email }));
+    }
+  }, [user, isOpen]);
+
   const createRequestMutation = useMutation({
     mutationFn: async (requestData: any) => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify(requestData),
       });
       if (!response.ok) {
@@ -150,17 +161,25 @@ const AdoptionFormModal = ({ isOpen, onClose, pets }: { isOpen: boolean; onClose
   );
 };
 
-
-
 // Hero Section Component
 const HeroSection = () => {
   const [isAdoptionFormOpen, setIsAdoptionFormOpen] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState<'login' | 'register' | null>(null);
+  const { isAuthenticated, user, token } = useAuth();
 
   const { data: pets } = useQuery<Pet[]>({ 
     queryKey: ['pets', 'all', 'disponivel'], 
     queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel`).then(res => res.json()),
     initialData: [],
   });
+
+  const handleAdoptClick = () => {
+    if (isAuthenticated) {
+      setIsAdoptionFormOpen(true);
+    } else {
+      setAuthDialogOpen('login');
+    }
+  };
 
   return (
     <>
@@ -200,7 +219,7 @@ const HeroSection = () => {
                 variant="outline"
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 hover:shadow-glow transition-all duration-300 px-8 py-6 text-lg font-semibold"
-                onClick={() => setIsAdoptionFormOpen(true)}
+                onClick={handleAdoptClick}
               >
                 <Heart className="w-5 h-5 mr-2" />
                 Adotar Agora
@@ -243,6 +262,18 @@ const HeroSection = () => {
         isOpen={isAdoptionFormOpen} 
         onClose={() => setIsAdoptionFormOpen(false)} 
         pets={pets || []} 
+        user={user}
+        token={token}
+      />
+      <LoginDialog 
+        open={authDialogOpen === 'login'} 
+        onOpenChange={(open) => !open && setAuthDialogOpen(null)}
+        onSwitchToRegister={() => setAuthDialogOpen('register')}
+      />
+      <RegisterDialog 
+        open={authDialogOpen === 'register'} 
+        onOpenChange={(open) => !open && setAuthDialogOpen(null)}
+        onSwitchToLogin={() => setAuthDialogOpen('login')}
       />
     </>
   );
