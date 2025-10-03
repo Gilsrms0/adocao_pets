@@ -13,6 +13,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
   token: string | null;
+  isLoading: boolean; // Adicionado para rastrear o estado de carregamento
   login: (token: string) => void;
   logout: () => void;
 }
@@ -23,28 +24,48 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Define o provedor de autenticação
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('authToken'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('authToken'));
+  const [isLoading, setIsLoading] = useState(true); // Inicia como true
 
   useEffect(() => {
-    if (token) {
-      try {
-        // Decodifica o token para extrair informações do usuário
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ id: payload.id, name: payload.name, email: payload.email, role: payload.role });
-      } catch (error) {
-        console.error("Failed to decode token:", error);
-        localStorage.removeItem('authToken');
+    const verifyToken = () => {
+      const storedToken = localStorage.getItem('authToken');
+      if (storedToken) {
+        try {
+          // Decodifica o token para extrair informações do usuário
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          // Verifica se o token expirou (opcional, mas recomendado)
+          if (payload.exp * 1000 < Date.now()) {
+            throw new Error("Token expirado.");
+          }
+          setUser({ id: payload.id, name: payload.name, email: payload.email, role: payload.role });
+          setToken(storedToken);
+        } catch (error) {
+          console.error("Falha ao verificar o token:", error);
+          localStorage.removeItem('authToken');
+          setToken(null);
+          setUser(null);
+        }
+      } else {
         setToken(null);
         setUser(null);
       }
-    } else {
-      setUser(null);
-    }
-  }, [token]);
+      setIsLoading(false); // Finaliza o carregamento
+    };
+
+    verifyToken();
+  }, []);
 
   const login = (newToken: string) => {
     localStorage.setItem('authToken', newToken);
     setToken(newToken);
+    try {
+      const payload = JSON.parse(atob(newToken.split('.')[1]));
+      setUser({ id: payload.id, name: payload.name, email: payload.email, role: payload.role });
+    } catch (error) {
+      console.error("Falha ao decodificar o novo token:", error);
+      setUser(null);
+    }
   };
 
   const logout = () => {
@@ -54,9 +75,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const value = {
-    isAuthenticated: !!token,
+    isAuthenticated: !isLoading && !!token,
     user,
     token,
+    isLoading,
     login,
     logout,
   };

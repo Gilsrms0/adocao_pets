@@ -8,7 +8,7 @@ import { verifyToken } from '../auth/authMiddleware.js'; // Corrigido de authMid
 const router = express.Router();
 
 // Rota para o usuário logado buscar seu histórico de adoções
-router.get('/me', verifyToken, getMyAdocoes);
+router.get('/me/adocoes', verifyToken, getMyAdocoes);
 
 // Rota para registrar uma nova adoção (agora depreciada para uso direto pelo frontend)
 router.post('/', verifyToken, createAdocao);

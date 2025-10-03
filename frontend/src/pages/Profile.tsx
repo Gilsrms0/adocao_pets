@@ -39,7 +39,7 @@ const ProfilePage = () => {
   const { data: adocoes, isLoading: isLoadingAdocoes, isError: isErrorAdocoes } = useQuery<Adocao[]>({ 
     queryKey: ['minhasAdocoes', user?.id],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/adocoes/me`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/adocoes/me/adocoes`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

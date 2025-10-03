@@ -22,21 +22,23 @@ interface Adopter {
 const ListAdopters = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const { token, isLoading: isAuthLoading } = useAuth(); // Renomeado para evitar conflito
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAdopter, setEditingAdopter] = useState<Adopter | null>(null);
 
   const { data: adopters, isLoading, isError, error } = useQuery<Adopter[]>({
-    queryKey: ['adopters'],
+    queryKey: ['adopters', token], // Adicionado token à chave da query
     queryFn: async () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/adotantes`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
-        throw new Error('Erro ao buscar adotantes.');
+        const errorData = await response.json().catch(() => ({ message: 'Erro ao buscar adotantes.' }));
+        throw new Error(errorData.error || 'Erro ao buscar adotantes.');
       }
       return response.json();
     },
+    enabled: !!token && !isAuthLoading, // A query só será executada se o token existir e a autenticação não estiver carregando
   });
 
   const deleteAdopterMutation = useMutation({
@@ -69,7 +71,7 @@ const ListAdopters = () => {
     }
   };
 
-  if (isLoading) return <div className="text-center">Carregando adotantes...</div>;
+  if (isLoading || isAuthLoading) return <div className="text-center">Carregando adotantes...</div>; // Mostra carregando enquanto a autenticação ou a query estão em andamento
   if (isError) return <div className="text-center text-destructive">Erro: {error?.message}</div>;
 
   return (
@@ -246,7 +248,11 @@ const RegisterAdopterForm = ({ isOpen, onClose, adopterToEdit }: {
 };
 
 const AdminAdopterManagement = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="text-center">Verificando autenticação...</div>; // Tela de carregamento inicial
+  }
 
   if (!isAuthenticated || user?.role !== 'ADMIN') {
     return <div className="text-center text-destructive">Acesso negado.</div>; // Ou redirecionar

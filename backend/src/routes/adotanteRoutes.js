@@ -14,7 +14,7 @@ router.get('/me/adoption-requests', verifyToken, getMyAdoptionRequests);
 router.get('/', verifyToken, isAdmin, getAdotantes); 
 router.get('/:id', verifyToken, isAdmin, getAdotanteById);
 
-router.post('/', createAdotante); 
+router.post('/', verifyToken, isAdmin, createAdotante); 
 router.put('/:id', verifyToken, isAdmin, updateAdotante);
 router.delete('/:id', verifyToken, isAdmin, deleteAdotante);
 
