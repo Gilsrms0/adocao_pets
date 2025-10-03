@@ -2,214 +2,119 @@
 
 Este projeto é uma plataforma completa para gerenciar adoções de pets, com um Backend robusto em Node.js/Express e um Frontend moderno em React/Vite. Ele visa modernizar o processo de adoção de um abrigo de animais, agilizando o cadastro de pets e facilitando a conexão com possíveis adotantes.
 
-## 🎯 Objetivo
+## ✨ Funcionalidades Principais
 
-Desenvolver uma aplicação web funcional que permita ao abrigo gerenciar seus pets e acompanhar o processo de adoção, tornando-o mais eficiente e acessível.
-
-## ✨ Funcionalidades do Sistema
-
-### 1. Cadastro de Pets
-- **Nome do pet, Espécie, Data de nascimento, Descrição, Status**: O sistema permite o cadastro de novos pets com esses campos.
-- **Status**: O status do pet ("disponivel" ou "adotado") é atualizado automaticamente quando a adoção é registrada.
-
-### 2. Gerenciamento de Adotantes
-- **Nome completo, E-mail, Telefone, Endereço**: O sistema permite o registro de adotantes com essas informações.
-
-### 3. Processo de Adoção
-- **Escolha do pet pelo adotante**: Adotantes podem escolher um pet para adoção.
-- **Registro da data de adoção**: A data da adoção é registrada.
-- **Atualização automática do status do pet**: O status do pet é automaticamente alterado para "adotado" e removido da lista de pets disponíveis.
-
-### 4. Visualização de Pets Disponíveis
-- **Lista de pets**: Exibe informações como nome, espécie, idade e descrição.
-- **Filtros**: Permite filtrar pets por espécie e status ("disponivel"/"adotado").
+- **Visualização Paginada de Pets**: Navegação eficiente pela lista de animais disponíveis, com 6 pets por página.
+- **Busca e Filtragem**: Ferramentas para buscar pets por nome/descrição e filtrar por espécie ou status.
+- **Autenticação de Usuários**: Sistema de login e registro com JWT para diferenciar usuários comuns e administradores.
+- **Painel de Administração**:
+  - Gerenciamento completo de Pets (CRUD - Criar, Ler, Atualizar, Deletar).
+  - Gerenciamento de Adotantes.
+  - Visualização e gerenciamento de pedidos de adoção.
+- **Formulário de Adoção**: Usuários logados podem enviar solicitações de adoção para os pets disponíveis.
+- **Upload de Imagens**: Administradores podem adicionar e atualizar fotos dos pets.
 
 ## 🛠️ Tecnologias Utilizadas
 
 ### Backend (API)
 - **Linguagem**: Node.js
-- **Framework Web**: Express.js
+- **Framework**: Express.js
 - **ORM**: Prisma
 - **Banco de Dados**: PostgreSQL
-- **Autenticação**: JWT (JSON Web Tokens), bcryptjs (hash de senhas)
+- **Autenticação**: JWT (JSON Web Tokens), bcryptjs
 - **Upload de Arquivos**: Multer
-- **Variáveis de Ambiente**: dotenv
 
 ### Frontend (UI)
-- **Biblioteca UI**: React
-- **Linguagem**: TypeScript
+- **Biblioteca**: React (com TypeScript)
 - **Ferramenta de Build**: Vite
-- **Estilização**: Tailwind CSS, PostCSS
-- **Componentes UI**: Shadcn/ui (baseado em Radix UI)
+- **Estilização**: Tailwind CSS & Shadcn/ui
+- **Gerenciamento de Estado**: TanStack Query (React Query)
 - **Roteamento**: React Router DOM
-- **Gerenciamento de Formulários**: React Hook Form
-- **Validação**: Zod
-- **Gerenciamento de Estado/Dados**: TanStack Query (React Query)
 - **Ícones**: Lucide React
-
-## 📂 Estrutura do Projeto
-
-```
-.
-├── README.md
-├── backend/
-│   ├── prisma/                 # Esquema do banco de dados e migrações
-│   │   ├── schema.prisma
-│   │   └── seed.js             # Script para popular o BD com dados de exemplo
-│   ├── src/
-│   │   ├── auth/               # Lógica de autenticação (controller, middleware, rotas)
-│   │   ├── config/             # Configurações (ex: caminhos de uploads)
-│   │   ├── controllers/        # Lógica de negócio para pets e adotantes
-│   │   ├── routes/             # Definição das rotas da API
-│   │   └── server.js           # Ponto de entrada do servidor Express
-│   └── uploads/                # Diretório para imagens de pets
-└── frontend/
-    ├── public/
-    ├── src/
-    │   ├── assets/             # Imagens estáticas do frontend
-    │   ├── components/         # Componentes React (incluindo Shadcn/ui)
-    │   ├── hooks/
-    │   ├── lib/
-    │   ├── pages/              # Páginas da aplicação (Index, NotFound)
-    │   └── types/
-    ├── .env.local              # Variáveis de ambiente do frontend
-    └── vite.config.ts          # Configuração do Vite
-```
 
 ## 🚀 Configuração e Execução
 
-Siga estes passos para configurar e executar a aplicação localmente.
+Siga os passos para configurar e executar a aplicação localmente.
 
 ### 1. Pré-requisitos
 
-- **Node.js**: Versão 18+ (Recomendado: v20+).
-- **npm** ou **Yarn**: Gerenciador de pacotes.
-- **PostgreSQL Server**: Servidor rodando localmente e acessível.
+- **Node.js**: v18+
+- **npm** (ou Yarn/pnpm)
+- **PostgreSQL** Server
 
-### 2. Configuração do Backend (`/backend`)
+### 2. Backend (`/backend`)
 
-Navegue até o diretório `backend/`:
-```bash
-cd backend
-```
+1.  **Navegue até o diretório**: `cd backend`
+2.  **Instale as dependências**: `npm install`
+3.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz de `/backend` e preencha-o.
 
-#### a. Instalação de Dependências
-```bash
-npm install
-```
+    ```dotenv
+    # URL de Conexão com o PostgreSQL
+    # Formato: postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+    DATABASE_URL="postgresql://user:password@localhost:5432/adocao_pets_db?schema=public"
 
-#### b. Variáveis de Ambiente (`.env`)
-Crie o arquivo `.env` na raiz do diretório `backend/` e adicione as seguintes variáveis. **Adapte a `DATABASE_URL` com suas credenciais do PostgreSQL.**
+    # Chave Secreta para gerar tokens JWT
+    JWT_SECRET="SUA_CHAVE_SECRETA_AQUI"
 
-```
-# 🚨 URL de Conexão com o PostgreSQL
-# Exemplo: postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME/DATABASE_NAME?schema=public
-DATABASE_URL="postgresql://user:password@localhost:5432/pet_adoption_db?schema=public" 
+    # Chave para registro de novos administradores
+    SECRET_ADMIN_KEY="SUA_CHAVE_DE_ADMIN_AQUI"
 
-# Chave Secreta do JWT para Assinatura de Tokens
-JWT_SECRET="seu_segredo_jwt_aqui" 
+    # Porta do servidor
+    PORT=3001
+    ```
 
-# Chave Secreta para o Registro de Administrador
-SECRET_ADMIN_KEY="sua_chave_secreta_admin_aqui"
+4.  **Execute as migrações do banco**: `npx prisma migrate dev`
+5.  **(Opcional) Popule o banco com dados**: `npx prisma db seed`
+6.  **Inicie o servidor**: `npm run dev`
+    - A API estará rodando em `http://localhost:3001`.
 
-# Porta do Servidor Backend
-PORT=3001
-```
+### 3. Frontend (`/frontend`)
 
-#### c. Migração do Prisma (Criação de Tabelas)
-Aplique o esquema definido no seu arquivo `schema.prisma` ao banco de dados:
-```bash
-npx prisma migrate dev --name init_database
-```
+1.  **Navegue até o diretório**: `cd frontend` (a partir da raiz do projeto)
+2.  **Instale as dependências**: `npm install`
+3.  **Configure as variáveis de ambiente**: Crie um arquivo `.env` na raiz de `/frontend`.
 
-#### d. Seed do Banco de Dados (Dados de Exemplo)
-Popule o banco de dados com dados de exemplo (pets):
-```bash
-npx prisma db seed
-```
+    ```dotenv
+    # URL base da API (sem a barra no final)
+    VITE_API_URL=http://localhost:3001
+    ```
 
-#### e. Inicialização da Pasta de Uploads
-Crie a pasta de armazenamento de imagens. Esta pasta é obrigatória para o Multer:
-```bash
-mkdir uploads
-```
-**Importante**: Certifique-se de que as imagens referenciadas no `prisma/seed.js` (ex: `Bob_beagle.jpg`, `Luna.jpg`) estejam presentes neste diretório `backend/uploads/`.
-
-#### f. Execução do Servidor
-Inicie a API em modo de desenvolvimento:
-```bash
-npm run dev
-```
-O Backend (API) estará rodando em `http://localhost:3001`.
-
-### 3. Configuração do Frontend (`/frontend`)
-
-Navegue até o diretório `frontend/`:
-```bash
-cd ../frontend
-```
-
-#### a. Instalação de Dependências
-```bash
-npm install
-```
-
-#### b. Variáveis de Ambiente do Frontend (`.env.local`)
-Crie um arquivo `.env.local` na raiz do `frontend/` para apontar para a API. **É crucial que esta URL não inclua `/api` no final, pois o prefixo `/api` já é adicionado nas rotas da API e na rota estática de uploads no backend.**
-
-```
-VITE_API_URL=http://localhost:3001
-```
-
-#### c. Execução do Aplicativo
-Inicie o aplicativo React:
-```bash
-npm run dev
-```
-O Frontend estará acessível em `http://localhost:5173`.
+4.  **Inicie a aplicação**: `npm run dev`
+    - O site estará acessível em `http://localhost:5173` (ou outra porta, se a 5173 estiver em uso).
 
 ## 🗺️ Rotas da API
 
 Todas as rotas são prefixadas por `/api`.
 
-### 🔑 Rotas de Autenticação (`/api/auth`)
-| Rota                 | Método | Proteção | Descrição                                                              |
-| :------------------- | :----- | :------- | :--------------------------------------------------------------------- |
-| `/api/auth/register` | `POST`   | Pública  | Cria um novo usuário (ADOTANTE). Use `adminKey` para criar um ADMIN. |
-| `/api/auth/login`    | `POST`   | Pública  | Autentica o usuário e retorna o JWT.                                   |
+### 🔑 Autenticação (`/auth`)
+| Rota | Método | Proteção | Descrição |
+| :--- | :--- | :--- | :--- |
+| `/register` | `POST` | Pública | Cria um novo usuário (padrão: `ADOTANTE`). |
+| `/login` | `POST` | Pública | Autentica um usuário e retorna um token JWT. |
 
-### 🐾 Rotas de Pets (`/api/pets`)
-As rotas marcadas como `(ADMIN)` requerem o envio de um token JWT válido no cabeçalho `Authorization: Bearer <token>`.
+### 🐾 Pets (`/pets`)
+| Rota | Método | Proteção | Descrição |
+| :--- | :--- | :--- | :--- |
+| `/` | `GET` | Pública | Lista pets com filtros, busca e paginação. <br> **Query Params**: `page`, `pageSize`, `status`, `species`, `search`. |
+| `/:id` | `GET` | Pública | Busca um pet específico pelo ID. |
+| `/` | `POST` | Admin | Cadastra um novo pet (requer `multipart/form-data`). |
+| `/:id` | `PUT` | Admin | Atualiza os dados de um pet (requer `multipart/form-data`). |
+| `/:id` | `DELETE` | Admin | Deleta um pet. |
 
-| Rota                 | Método | Proteção | Descrição                                                              |
-| :------------------- | :----- | :------- | :--------------------------------------------------------------------- |
-| `/api/pets`          | `GET`    | Pública  | Lista pets com status: 'disponivel'.                                   |
-| `/api/pets/admin`    | `GET`    | ADMIN    | Lista todos os pets (disponíveis e adotados).                          |
-| `/api/pets`          | `POST`   | ADMIN    | Cadastra novo pet (requer `image` como `multipart/form-data`).         |
-| `/api/pets/:id`      | `GET`    | Pública  | Busca um pet específico pelo ID.                                       |
-| `/api/pets/:id`      | `PUT`    | ADMIN    | Atualiza dados e imagem do pet.                                        |
-| `/api/pets/no-image/:id` | `PUT`    | ADMIN    | Atualiza dados do pet sem alterar a imagem.                            |
-| `/api/pets/:id`      | `DELETE` | ADMIN    | Deleta um pet.                                                         |
+### 🧑 Adotantes (`/adotantes`)
+| Rota | Método | Proteção | Descrição |
+| :--- | :--- | :--- | :--- |
+| `/` | `GET` | Admin | Lista todos os adotantes. |
+| `/:id` | `GET` | Admin | Busca um adotante pelo ID. |
+| `/me/adoption-requests` | `GET` | Autenticado | Lista os pedidos de adoção do usuário logado. |
+| `/:id` | `PUT` | Admin | Atualiza os dados de um adotante. |
+| `/:id` | `DELETE` | Admin | Deleta um adotante. |
 
-### 🧑 Rotas de Adotantes (`/api/adotantes`)
-| Rota                   | Método | Proteção | Descrição                                  |
-| :--------------------- | :----- | :------- | :----------------------------------------- |
-| `/api/adotantes`       | `POST`   | ADMIN    | Cadastra um novo adotante.                 |
-| `/api/adotantes`       | `GET`    | ADMIN    | Lista todos os adotantes cadastrados.      |
-| `/api/adotantes/:id`   | `GET`    | ADMIN    | Busca adotante pelo ID.                    |
-| `/api/adotantes/:id`   | `PUT`    | ADMIN    | Atualiza os dados de um adotante.          |
-| `/api/adotantes/:id`   | `DELETE` | ADMIN    | Deleta um adotante.                        |
+### ❤️ Pedidos de Adoção (`/adoption-requests`)
+| Rota | Método | Proteção | Descrição |
+| :--- | :--- | :--- | :--- |
+| `/` | `POST` | Autenticado | Cria um novo pedido de adoção. |
+| `/` | `GET` | Admin | Lista todos os pedidos de adoção. |
+| `/:id/status` | `PATCH` | Admin | Atualiza o status de um pedido (`PENDING`, `APPROVED`, `REJECTED`). |
 
-### ❤️ Rotas de Adoções (`/api/adocoes`)
-| Rota                   | Método | Proteção | Descrição                                  |
-| :--------------------- | :----- | :------- | :----------------------------------------- |
-| `/api/adocoes`         | `POST`   | Pública  | Registra uma nova adoção.                  |
-
-## 💡 Extras (Desafios Opcionais) Implementados
-
-- **Filtro Avançado**: O sistema exibe informações de `tamanho` e `personalidade` nos cards.
-- **Autenticação**: Implementado sistema de autenticação para `ADMIN` (administradores) com JWT, permitindo gerenciar pets e adotantes.
-
-## 📝 Licença
-
-Este projeto está licenciado sob a licença [MIT / Insira sua Licença Aqui].
+---

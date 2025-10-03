@@ -16,149 +16,114 @@ Este é o backend para o sistema de adoção de pets "AdoteMe". Ele é responsá
 
 ## ⚙️ Pré-requisitos
 
-Antes de começar, você vai precisar ter as seguintes ferramentas instaladas em sua máquina:
-- [Node.js](https://nodejs.org/en/) (versão 18.x ou superior)
-- [NPM](https://www.npmjs.com/) ou [Yarn](https://yarnpkg.com/)
-- [PostgreSQL](https://www.postgresql.org/download/)
+- [Node.js](https://nodejs.org/en/) (v18+)
+- [NPM](https://www.npmjs.com/) ou outro gerenciador de pacotes
+- [PostgreSQL](https://www.postgresql.org/download/) Server em execução
 
 ## 🚀 Como Começar
 
-Siga os passos abaixo para configurar e executar o projeto em seu ambiente local.
+1.  **Clone o repositório** e navegue até a pasta do backend:
+    ```bash
+    git clone https://github.com/seu-usuario/adocao_pets.git
+    cd adocao_pets/backend
+    ```
 
-**1. Clone o repositório**
-```bash
-git clone <URL_DO_SEU_REPOSITORIO>
-cd <NOME_DO_PROJETO>/backend
-```
+2.  **Instale as dependências**:
+    ```bash
+    npm install
+    ```
 
-**2. Instale as dependências**
-```bash
-npm install
-```
+3.  **Configure as Variáveis de Ambiente**
 
-**3. Configure as Variáveis de Ambiente**
+    Crie um arquivo chamado `.env` na raiz do diretório `backend/` e preencha com as seguintes variáveis:
 
-Crie um arquivo chamado `.env` na raiz do diretório `backend/` e adicione a seguinte variável, substituindo pelos dados do seu banco de dados PostgreSQL.
+    ```env
+    # URL de Conexão com o PostgreSQL
+    # Formato: postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+    DATABASE_URL="postgresql://user:password@localhost:5432/adocao_pets_db?schema=public"
 
-```env
-# Exemplo de .env
-DATABASE_URL="postgresql://USUARIO:SENHA@HOST:PORTA/NOME_DO_BANCO?schema=public"
-```
-*   **USUARIO**: Seu nome de usuário do PostgreSQL.
-*   **SENHA**: Sua senha do PostgreSQL.
-*   **HOST**: Onde seu banco de dados está rodando (ex: `localhost`).
-*   **PORTA**: A porta do seu banco de dados (padrão: `5432`).
-*   **NOME_DO_BANCO**: O nome do banco de dados que você criou para este projeto.
+    # Chave Secreta para gerar tokens JWT (use um valor longo e aleatório)
+    JWT_SECRET="SUA_CHAVE_SECRETA_FORTE_AQUI"
 
-**4. Execute as Migrations do Banco de Dados**
+    # Chave secreta para permitir o registro de um usuário como ADMIN
+    SECRET_ADMIN_KEY="SUA_CHAVE_SECRETA_DE_ADMIN_AQUI"
 
-Este comando irá criar as tabelas no seu banco de dados com base no schema do Prisma.
-```bash
-npx prisma migrate dev
-```
+    # Porta em que o servidor irá rodar
+    PORT=3001
+    ```
 
-**5. (Opcional) Popule o Banco de Dados com Dados Iniciais**
+4.  **Execute as Migrations do Banco de Dados**
 
-Seu projeto possui um script para popular o banco. Para executá-lo:
-```bash
-npx prisma db seed
-```
-> **Nota:** Se você fizer alterações no arquivo `prisma/seed.js`, é necessário executar este comando novamente para que as mudanças sejam aplicadas ao seu banco de dados.
+    Este comando cria as tabelas no seu banco de dados com base no `schema.prisma`.
+    ```bash
+    npx prisma migrate dev
+    ```
+
+5.  **(Opcional) Popule o Banco com Dados Iniciais**
+
+    Para adicionar dados de exemplo (pets, usuários), execute:
+    ```bash
+    npx prisma db seed
+    ```
 
 ## ▶️ Executando a Aplicação
 
-**Modo de Desenvolvimento**
-Para iniciar o servidor em modo de desenvolvimento com hot-reload (reinicia automaticamente ao salvar alterações):
-```bash
-npm run dev
-```
-O servidor estará disponível em `http://localhost:3001` (ou a porta definida em seu `.env`).
+- **Modo de Desenvolvimento**: Inicia o servidor com hot-reload.
+  ```bash
+  npm run dev
+  ```
 
-**Modo de Produção**
-Para iniciar o servidor em modo de produção:
-```bash
-npm start
-```
+- **Modo de Produção**: Inicia o servidor para produção.
+  ```bash
+  npm start
+  ```
 
-## 📂 Estrutura do Projeto
+O servidor estará disponível em `http://localhost:3001` (ou na porta definida no `.env`).
 
-```
-backend/
-├── prisma/
-│   ├── schema.prisma   # Define os modelos e a conexão com o banco
-│   └── migrations/     # Histórico de migrações do banco
-├── src/
-│   ├── auth/           # Lógica de autenticação e rotas
-│   ├── config/         # Arquivos de configuração (ex: caminhos)
-│   ├── controllers/    # Lógica de negócio das rotas
-│   ├── routes/         # Definição dos endpoints da API
-│   └── server.js       # Ponto de entrada principal do servidor
-├── uploads/            # Diretório onde as imagens dos pets são salvas
-├── .env                # Arquivo com variáveis de ambiente (local)
-└── package.json        # Dependências e scripts do projeto
-```
+## 🗺️ Endpoints da API
 
-## Endpoints da API
+A seguir está um resumo das rotas disponíveis. Todas são prefixadas com `/api`.
 
-A seguir está a lista de endpoints disponíveis na API.
+--- 
 
----
+### 🔑 Autenticação (`/auth`)
 
-### Autenticação (`/api/auth`)
-*(Rotas de autenticação como `login` e `register` são gerenciadas aqui. Verifique `src/auth/authRoutes.js` para detalhes).*
+-   **`POST /register`**: Cria um novo usuário. Se a `adminKey` correta for enviada no corpo, o usuário será criado como `ADMIN`.
+-   **`POST /login`**: Autentica um usuário e retorna um token JWT.
 
----
+--- 
 
-### Pets (`/api/pets`)
+### 🐾 Pets (`/pets`)
 
-- **`GET /`**
-  - **Descrição**: Retorna uma lista de todos os pets.
-  - **Acesso**: Público.
-
-- **`GET /:id`**
-  - **Descrição**: Retorna os detalhes de um pet específico pelo seu ID.
-  - **Acesso**: Público.
-
-- **`POST /`**
-  - **Descrição**: Cria um novo pet. Requer envio de `multipart/form-data` para a imagem.
-  - **Acesso**: Privado (requer token de Admin).
-
-- **`PUT /:id`**
-  - **Descrição**: Atualiza completamente um pet, incluindo a imagem.
-  - **Acesso**: Privado (requer token de Admin).
-
-- **`PUT /no-image/:id`**
-  - **Descrição**: Atualiza os dados de um pet sem alterar a imagem.
-  - **Acesso**: Privado (requer token de Admin).
-
-- **`DELETE /:id`**
-  - **Descrição**: Deleta um pet pelo seu ID.
-  - **Acesso**: Privado (requer token de Admin).
-
-- **`GET /admin`**
-  - **Descrição**: Rota para visualização de pets no painel de administração.
-  - **Acesso**: Privado (requer token de Admin).
+-   **`GET /`**: Lista pets com suporte a filtros, busca e paginação.
+    -   **Query Params**: `page` (nº da página), `pageSize` (itens por página), `status`, `species`, `search` (busca por nome/descrição).
+    -   **Acesso**: Público.
+-   **`GET /:id`**: Retorna os detalhes de um pet específico.
+    -   **Acesso**: Público.
+-   **`POST /`**: Cria um novo pet.
+    -   **Acesso**: Admin (requer token).
+    -   **Corpo**: `multipart/form-data` com os dados do pet e a imagem.
+-   **`PUT /:id`**: Atualiza um pet.
+    -   **Acesso**: Admin (requer token).
+-   **`DELETE /:id`**: Deleta um pet.
+    -   **Acesso**: Admin (requer token).
 
 ---
 
-### Adotantes (`/api/adotantes`)
+### 🧑 Adotantes (`/adotantes`)
 
-- **`GET /`**
-  - **Descrição**: Retorna uma lista de todos os adotantes.
-  - **Acesso**: Privado (requer token de Admin).
+-   **`GET /`**: Lista todos os adotantes.
+    -   **Acesso**: Admin (requer token).
+-   **`GET /me/adoption-requests`**: Lista os pedidos de adoção feitos pelo usuário logado.
+    -   **Acesso**: Autenticado (qualquer usuário logado).
 
-- **`GET /:id`**
-  - **Descrição**: Retorna os detalhes de um adotante específico pelo seu ID.
-  - **Acesso**: Privado (requer token de Admin).
+---
 
-- **`POST /`**
-  - **Descrição**: Cria um novo adotante.
-  - **Acesso**: Privado (requer token de Admin).
+### ❤️ Pedidos de Adoção (`/adoption-requests`)
 
-- **`PUT /:id`**
-  - **Descrição**: Atualiza os dados de um adotante.
-  - **Acesso**: Privado (requer token de Admin).
-
-- **`DELETE /:id`**
-  - **Descrição**: Deleta um adotante pelo seu ID.
-  - **Acesso**: Privado (requer token de Admin).
+-   **`POST /`**: Cria um novo pedido de adoção.
+    -   **Acesso**: Autenticado (qualquer usuário logado).
+-   **`GET /`**: Lista todos os pedidos de adoção.
+    -   **Acesso**: Admin (requer token).
+-   **`PATCH /:id/status`**: Atualiza o status de um pedido (`PENDING`, `APPROVED`, `REJECTED`).
+    -   **Acesso**: Admin (requer token).
