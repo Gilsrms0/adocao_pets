@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, Facebook, Instagram, Twitter, Mail, MapPin } from "lucide-react";
+import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, Facebook, Instagram, Twitter, Mail, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-pets.jpg";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,6 +27,11 @@ interface Pet {
   imageUrl?: string;
   tamanho?: "PEQUENO" | "MEDIO" | "GRANDE";
   personalidade?: string;
+}
+
+interface PetsApiResponse {
+  data: Pet[];
+  total: number;
 }
 
 const AdoptionFormModal = ({ isOpen, onClose, pets, user, token }: { isOpen: boolean; onClose: () => void; pets: Pet[]; user: any; token: string | null; }) => {
@@ -167,10 +172,10 @@ const HeroSection = () => {
   const [authDialogOpen, setAuthDialogOpen] = useState<'login' | 'register' | null>(null);
   const { isAuthenticated, user, token } = useAuth();
 
-  const { data: pets } = useQuery<Pet[]>({ 
-    queryKey: ['pets', 'all', 'disponivel'], 
-    queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel`).then(res => res.json()),
-    initialData: [],
+  const { data: petsResponse } = useQuery<PetsApiResponse>({ 
+    queryKey: ['pets', 'all', 'disponivel', 1, ''], // Query para a primeira página de pets disponíveis
+    queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel&page=1&pageSize=6`).then(res => res.json()),
+    initialData: { data: [], total: 0 },
   });
 
   const handleAdoptClick = () => {
@@ -245,7 +250,7 @@ const HeroSection = () => {
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
                   <Home className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-3xl font-bold">50+</div>
+                <div className="text-3xl font-bold">{petsResponse?.total || 0}+</div>
                 <div className="text-white/80">Aumigos Disponíveis</div>
               </div>
             </div>
@@ -261,7 +266,7 @@ const HeroSection = () => {
       <AdoptionFormModal 
         isOpen={isAdoptionFormOpen} 
         onClose={() => setIsAdoptionFormOpen(false)} 
-        pets={pets || []} 
+        pets={petsResponse?.data || []} 
         user={user}
         token={token}
       />
@@ -587,18 +592,19 @@ const PetsSection = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [filterStatus, setFilterStatus] = useState("disponivel");
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const fetchPets = async (species: string, status: string) => {
+  const fetchPets = async (species: string, status: string, searchTerm: string, page: number) => {
     const params = new URLSearchParams();
-    if (species !== "all") {
-      params.append("species", species);
-    }
-    if (status !== "all") {
-      params.append("status", status);
-    }
+    if (species !== "all") params.append("species", species);
+    if (status !== "all") params.append("status", status);
+    if (searchTerm) params.append("search", searchTerm);
+    params.append("page", page.toString());
+    params.append("pageSize", pageSize.toString());
     
     const response = await fetch(`${import.meta.env.VITE_API_URL}/pets?${params.toString()}`);
     if (!response.ok) {
@@ -607,10 +613,11 @@ const PetsSection = () => {
     return response.json();
   };
 
-  const { data: petsFromApi, isLoading, isError, error } = useQuery<Pet[]>(
+  const { data, isLoading, isError, error } = useQuery<PetsApiResponse>(
     {
-      queryKey: ['pets', filterSpecies, filterStatus],
-      queryFn: () => fetchPets(filterSpecies, filterStatus),
+      queryKey: ['pets', filterSpecies, filterStatus, searchTerm, page],
+      queryFn: () => fetchPets(filterSpecies, filterStatus, searchTerm, page),
+      keepPreviousData: true, // Melhora a experiência do usuário durante a paginação
     }
   );
 
@@ -645,12 +652,6 @@ const PetsSection = () => {
     },
   });
 
-  const filteredPets = petsFromApi?.filter(pet => {
-    if (!searchTerm) return true;
-    return pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           pet.description.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
   const handleAdopt = () => {
     document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -664,6 +665,8 @@ const PetsSection = () => {
   const handleViewDetails = (pet: Pet) => {
     setSelectedPet(pet);
   };
+
+  const totalPages = data ? Math.ceil(data.total / pageSize) : 0;
 
   return (
     <section id="pets" className="py-20 bg-background">
@@ -686,12 +689,15 @@ const PetsSection = () => {
               <Input
                 placeholder="Buscar por nome ou descrição..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1); // Reseta para a primeira página ao buscar
+                }}
                 className="pl-10 bg-background border-border"
               />
             </div>
             <div className="flex gap-3 w-full md:w-auto">
-              <Select value={filterSpecies} onValueChange={setFilterSpecies}>
+              <Select value={filterSpecies} onValueChange={(value) => { setFilterSpecies(value); setPage(1); }}>
                 <SelectTrigger className="w-full md:w-40">
                   <SelectValue placeholder="Espécie" />
                 </SelectTrigger>
@@ -703,7 +709,7 @@ const PetsSection = () => {
                   <SelectItem value="PÁSSARO">Pássaro</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <Select value={filterStatus} onValueChange={(value) => { setFilterStatus(value); setPage(1); }}>
                 <SelectTrigger className="w-full md:w-40">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
@@ -740,14 +746,19 @@ const PetsSection = () => {
         {!isLoading && !isError && (
           <>
             {/* Results count */}
-            <div className="mb-8">
+            <div className="mb-8 flex justify-between items-center">
               <p className="text-muted-foreground">
-                {filteredPets?.length} {filteredPets?.length === 1 ? 'pet encontrado' : 'pets encontrados'}
+                {data?.total || 0} {data?.total === 1 ? 'pet encontrado' : 'pets encontrados'}
               </p>
+              {totalPages > 1 && (
+                <span className="text-sm text-muted-foreground">
+                  Página {page} de {totalPages}
+                </span>
+              )}
             </div>
             {/* Pets Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPets?.map((pet) => (
+              {data?.data.map((pet) => (
                 <PetCard
                   key={pet.id}
                   pet={pet}
@@ -757,7 +768,7 @@ const PetsSection = () => {
               ))}
             </div>
             {/* Empty State */}
-            {filteredPets?.length === 0 && (
+            {data?.data.length === 0 && (
               <div className="text-center py-16">
                 <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
                   <Search className="w-12 h-12 text-muted-foreground" />
@@ -772,9 +783,31 @@ const PetsSection = () => {
                     setSearchTerm("");
                     setFilterSpecies("all");
                     setFilterStatus("available");
+                    setPage(1);
                   }}
                 >
                   Limpar Filtros
+                </Button>
+              </div>
+            )}
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-16">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPage(p => Math.max(p - 1, 1))}
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Anterior
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setPage(p => Math.min(p + 1, totalPages))}
+                  disabled={page === totalPages}
+                >
+                  Próximo
+                  <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             )}
