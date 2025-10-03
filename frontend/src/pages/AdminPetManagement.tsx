@@ -26,7 +26,7 @@ interface Pet {
 }
 
 // Componente para adicionar/editar pets
-const RegisterPetForm = ({ isOpen, onClose, petToEdit }: {
+const RegisterPetForm = ({ isOpen, onClose, petToEdit }: { 
   isOpen: boolean;
   onClose: () => void;
   petToEdit: Pet | null;
@@ -223,21 +223,23 @@ const RegisterPetForm = ({ isOpen, onClose, petToEdit }: {
 const ListPets = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { token } = useAuth();
+  const { token, isLoading: isAuthLoading } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
 
   const { data: pets, isLoading, isError, error } = useQuery<Pet[]>({
-    queryKey: ['adminPets'],
+    queryKey: ['adminPets', token],
     queryFn: async () => {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/pets/admin`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
-        throw new Error('Erro ao buscar pets.');
+        const errorData = await response.json().catch(() => ({ message: 'Erro ao buscar pets.' }));
+        throw new Error(errorData.error || 'Erro ao buscar pets.');
       }
       return response.json();
     },
+    enabled: !!token && !isAuthLoading,
   });
 
   const deletePetMutation = useMutation({
@@ -270,7 +272,7 @@ const ListPets = () => {
     }
   };
 
-  if (isLoading) return <div className="text-center">Carregando pets...</div>;
+  if (isLoading || isAuthLoading) return <div className="text-center">Carregando pets...</div>;
   if (isError) return <div className="text-center text-destructive">Erro: {error?.message}</div>;
 
   return (
@@ -327,7 +329,11 @@ const ListPets = () => {
 };
 
 const AdminPetManagement = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="text-center">Verificando autenticação...</div>;
+  }
 
   if (!isAuthenticated || user?.role !== 'ADMIN') {
     return <Navigate to="/" replace />;

@@ -38,36 +38,32 @@ interface AdoptionRequest {
 const AdminAdoptionRequests = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { token, user, isAuthenticated } = useAuth();
-
-  if (!isAuthenticated || user?.role !== 'ADMIN') {
-    return <Navigate to="/" replace />;
-  }
+  const { token, user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   const { data: requests, isLoading, isError, error } = useQuery<AdoptionRequest[]> ({
-    queryKey: ['adoptionRequests'],
+    queryKey: ['adoptionRequests', token],
     queryFn: async () => {
-      if (!token) {
-        throw new Error('Token de autenticação não disponível.');
-      }
       const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!response.ok) {
-        throw new Error('Erro ao buscar solicitações de adoção.');
+        const errorData = await response.json().catch(() => ({ message: 'Erro ao buscar solicitações.' }));
+        throw new Error(errorData.error || 'Erro ao buscar solicitações.');
       }
       return response.json();
     },
-    enabled: !!token,
+    enabled: !!token && !isAuthLoading,
   });
 
   const updateRequestStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: "APPROVED" | "DENIED" }) => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status }),
-      });
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/adoption-requests/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status }),
+        }
+      );
       if (!response.ok) {
         throw new Error('Erro ao atualizar status da solicitação.');
       }
@@ -82,6 +78,14 @@ const AdminAdoptionRequests = () => {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
     },
   });
+
+  if (isAuthLoading) {
+    return <div className="text-center">Verificando autenticação...</div>;
+  }
+
+  if (!isAuthenticated || user?.role !== 'ADMIN') {
+    return <Navigate to="/" replace />;
+  }
 
   if (isLoading) return <div className="text-center">Carregando solicitações...</div>;
   if (isError) return <div className="text-center text-destructive">Erro: {error?.message}</div>;
