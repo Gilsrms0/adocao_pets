@@ -13,7 +13,7 @@ export const verifyToken = (req, res, next) => {
 
   try {
     // ATENÇÃO: Verifique se essa chave está no seu arquivo .env
-    const secret = process.env.JWT_SECRET || "SEGREDO_SUPER_SECRETO"; 
+    const secret = process.env.JWT_SECRET; 
     const decoded = jwt.verify(token, secret);
     
     // Adiciona o ID do usuário decodificado à requisição
@@ -36,7 +36,7 @@ export const isAdmin = async (req, res, next) => {
       where: { id: req.userId },
     });
 
-    if (user && user.role === 'ADM') { // Assumindo 'ADM' como a role do administrador
+    if (user && user.role === 'ADMIN') { // CORREÇÃO 'ADM' PARA 'ADMIN'
       next();
     } else {
       res.status(403).json({ error: "Acesso negado. Apenas administradores podem realizar esta ação." });
