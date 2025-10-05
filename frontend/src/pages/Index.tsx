@@ -841,7 +841,7 @@ const PetsSection = () => {
 // How to Adopt Section Component
 const HowToAdoptSection = () => {
   const steps = [
-    { icon: Search, title: "1. Encontre seu Pet", description: "Navegue pela nossa galeria de pets disponíveis e encontre aquele que conquistou seu coração.", color: "text-primary" },
+    { icon: Search, title: "1. Encontre seu Aumigo", description: "Navegue pela nossa galeria de aumigos disponíveis e encontre aquele que conquistou seu coração.", color: "text-primary" },
     { icon: FileText, title: "2. Preencha o Formulário", description: "Complete o formulário de interesse com suas informações de contato e preferências.", color: "text-secondary" },
     { icon: Phone, title: "3. Entrevista e Visita", description: "Nossa equipe entrará em contato para agendar uma conversa e visita ao abrigo.", color: "text-accent" },
     { icon: CheckCircle, title: "4. Aprovação", description: "Após a avaliação, você receberá a confirmação da aprovação da adoção.", color: "text-secondary" },
@@ -864,7 +864,7 @@ const HowToAdoptSection = () => {
             Como <span className="bg-gradient-primary bg-clip-text text-transparent">Adotar</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            O processo de adoção é simples e pensado para garantir o bem-estar dos pets e a felicidade das famílias.
+            O processo de adoção é simples e pensado para garantir o bem-estar dos aumigos e a felicidade das famílias.
           </p>
         </div>
         {/* Steps */}
@@ -897,7 +897,7 @@ const HowToAdoptSection = () => {
               Requisitos para Adoção
             </h3>
             <p className="text-muted-foreground mb-8 text-lg">
-              Para garantir o bem-estar dos nossos pets, estabelecemos alguns requisitos básicos
+              Para garantir o bem-estar dos nossos aumigos, estabelecemos alguns requisitos básicos
               que todos os adotantes devem atender:
             </p>
             <div className="space-y-4">
