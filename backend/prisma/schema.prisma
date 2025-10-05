@@ -9,12 +9,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Role {
+  ADMIN
+  ADOTANTE
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("ADOTANTE") // 'ADMIN' ou 'ADOTANTE'
+  role      Role   @default(ADOTANTE) // 'ADMIN' ou 'ADOTANTE'
   pets      Pet[] // Nova relação: Usuário (Admin) pode cadastrar vários Pets
 }
 
@@ -28,6 +33,12 @@ model Adotante {
   adocoes   Adocao[]
 }
 
+enum PetStatus {
+  disponivel
+  adotado
+  reservado
+}
+
 model Pet {
   id          Int      @id @default(autoincrement())
   name        String
@@ -35,7 +46,7 @@ model Pet {
   birthDate   DateTime
   description String
   imageUrl    String?
-  status      String   @default("disponivel")
+  status      PetStatus @default(disponivel)
   adocao      Adocao?
 
   // NOVOS CAMPOS PARA RELAÇÃO COM O ADMINISTRADOR QUE CADASTROU
