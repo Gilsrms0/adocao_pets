@@ -19,7 +19,13 @@ export const createAdotante = async (req, res) => {
     res.status(201).json(newAdotante);
   } catch (error) {
     console.error("Erro ao cadastrar adotante:", error);
-    res.status(500).json({ error: "Erro ao cadastrar adotante. Verifique os campos obrigatórios." });
+
+    // Refinamento: tratando erros com mensagens mais especificas
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: "O e-mail informado já está em uso."}); //409 conflict
+    }
+
+    res.status(500).json({ error: "Erro interno ao cadastrar adotante." });
   }
 };
 
@@ -62,7 +68,13 @@ export const updateAdotante = async (req, res) => {
     res.status(200).json(updatedAdotante);
   } catch (error) {
     console.error("Erro ao atualizar adotante:", error);
-    res.status(500).json({ error: "Erro ao atualizar adotante." });
+
+    // Refinamento: tratando erros com mensagens mais especificas
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Adotante não encontrado."}); //404 Not Found
+    }
+
+    res.status(500).json({ error: "Erro interno ao atualizar adotante." });
   }
 };
 
@@ -74,6 +86,12 @@ export const deleteAdotante = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     console.error("Erro ao deletar adotante:", error);
+
+    // Refinamento: tratando erros com mensagens mais especificas
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Adotante não encontrado."}); //404 Not Found
+    }
+
     res.status(500).json({ error: "Erro ao deletar adotante." });
   }
 };

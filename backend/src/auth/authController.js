@@ -8,9 +8,6 @@ const prisma = new PrismaClient();
 export const register = async (req, res) => {
   const { name, email, password, adminKey } = req.body;
 
-  // Defina a chave secreta aqui. Em um projeto real, isso deve vir de um arquivo .env
-  const SECRET_ADMIN_KEY = 'sua_chave_secreta_aqui';
-
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     
@@ -18,8 +15,8 @@ export const register = async (req, res) => {
     let role = 'ADOTANTE';
 
     // Se a chave de administrador for fornecida e correta, a role se torna 'ADM'
-    if (adminKey && adminKey === SECRET_ADMIN_KEY) {
-      role = 'ADM';
+    if (adminKey && adminKey === process.env.SECRET_ADMIN_KEY) {
+      role = 'ADMIN'; // CORREÇÃO DE DIGITAÇÃO
     }
 
     const newUser = await prisma.user.create({
@@ -30,8 +27,19 @@ export const register = async (req, res) => {
         role, // Usa a variável 'role' para definir a função do usuário
       }
     });
-    res.status(201).json({ message: "Usuário registrado com sucesso!", user: newUser });
+
+    // Por segurança, cria uma cópia do objeto de usuário sem a propriedade 'password' antes de enviar a resposta.
+    const { password: _, ...userWithoutPassword } = newUser;
+
+    res.status(201).json({ message: "Usuário registrado com sucesso!", user: userWithoutPassword });
   } catch (error) {
+    
+    // Refinamento: tratando erros com mensagens mais especificas
+    if (error.code === 'P2002') {
+        return res.status(409).json({error: "O e-mail informado já está em uso."});
+    }
+    console.error("Erro ao registrar usuário:", error); 
+    
     res.status(500).json({ error: "Erro ao registrar usuário." });
   }
 };
@@ -48,7 +56,7 @@ export const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Credenciais inválidas." });
     }
-    const token = jwt.sign({ userId: user.id, role: user.role }, "SEGREDO_SUPER_SECRETO", { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(200).json({ message: "Login realizado com sucesso!", token });
   } catch (error) {
     res.status(500).json({ error: "Erro ao fazer login." });
