@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-  upload,
   createPet,
   getAllPets,
   getPetById,
@@ -9,6 +8,7 @@ import {
   getAllPetsAdmin,
   updatePetWithoutImage,
 } from "../controllers/petController.js";
+import { upload } from "../config/upload.js";
 
 // CORREÇÃO: Ajustando o caminho do middleware para ser consistente
 import { verifyToken, isAdmin } from "../auth/authMiddleware.js";

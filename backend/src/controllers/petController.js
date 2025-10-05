@@ -1,32 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import multer from 'multer';
-import path from 'path';
-// --- IMPORTAÇÃO CORRIGIDA ---
-// Importa o caminho do novo módulo de configuração, não mais do server.js
-import { UPLOADS_PATH } from '../config/paths.js'; 
-// --------------------------
 
 const prisma = new PrismaClient();
-
-// --- Configuração do Multer (Upload de Imagens) ---
-// Define UPLOADS_DIR como o UPLOADS_PATH importado
-const UPLOADS_DIR = UPLOADS_PATH; 
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Garante que o Multer aponte corretamente para a pasta
-    cb(null, UPLOADS_DIR); 
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const extension = path.extname(file.originalname); 
-    cb(null, file.fieldname + '-' + uniqueSuffix + extension);
-  }
-});
-
-export const upload = multer({ storage: storage });
-// ----------------------------------------------------
-
 
 // 1. Cria um novo Pet (Apenas Admin)
 export const createPet = async (req, res) => {
