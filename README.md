@@ -118,3 +118,10 @@ Todas as rotas são prefixadas por `/api`.
 | `/:id/status` | `PATCH` | Admin | Atualiza o status de um pedido (`PENDING`, `APPROVED`, `REJECTED`). |
 
 ---
+
+## 🧑‍💻 Contribuidores
+
+- **Gilson Ramos**: [github.com/Gilsrms0](https://github.com/Gilsrms0)
+- **Marcelly Ramos**: [github.com/marcelly-ramos](https://github.com/marcelly-ramos)
+- **Camila Santos**: [github.com/santtospereira](https://github.com/santtospereira)
+- **Benedito Rodrigues**: [github.com/beneditorodrigues](https://github.com/beneditorodrigues)
