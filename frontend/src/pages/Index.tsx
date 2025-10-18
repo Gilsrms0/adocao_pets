@@ -34,8 +34,8 @@ interface PetsApiResponse {
   total: number;
 }
 
-const AdoptionFormModal = ({ isOpen, onClose, pets, user, token }: { isOpen: boolean; onClose: () => void; pets: Pet[]; user: any; token: string | null; }) => {
-  const [formData, setFormData] = useState({ adopterName: "", adopterEmail: "", adopterPhone: "", adopterAddress: "", petId: "", city: "", state: "", neighborhood: "", number: "" });
+const AdoptionFormModal = ({ isOpen, onClose, pets, user, token, initialPetId }: { isOpen: boolean; onClose: () => void; pets: Pet[]; user: any; token: string | null; initialPetId?: string; }) => {
+  const [formData, setFormData] = useState({ adopterName: "", adopterEmail: "", adopterPhone: "", adopterAddress: "", petId: initialPetId || "", city: "", state: "", neighborhood: "", number: "" });
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -44,7 +44,12 @@ const AdoptionFormModal = ({ isOpen, onClose, pets, user, token }: { isOpen: boo
     if (user) {
       setFormData(prev => ({ ...prev, adopterName: user.name, adopterEmail: user.email }));
     }
-  }, [user, isOpen]);
+    if (initialPetId) {
+      setFormData(prev => ({ ...prev, petId: initialPetId }));
+      const pet = pets.find(p => p.id.toString() === initialPetId);
+      setSelectedPet(pet || null);
+    }
+  }, [user, isOpen, initialPetId, pets]);
 
   const createRequestMutation = useMutation({
     mutationFn: async (requestData: any) => {
@@ -167,12 +172,16 @@ const AdoptionFormModal = ({ isOpen, onClose, pets, user, token }: { isOpen: boo
 };
 
 // Hero Section Component
-const HeroSection = () => {
-  const [isAdoptionFormOpen, setIsAdoptionFormOpen] = useState(false);
+const HeroSection = ({ isAdoptionFormOpen, setIsAdoptionFormOpen, selectedPetForForm, setSelectedPetForForm }: {
+  isAdoptionFormOpen: boolean;
+  setIsAdoptionFormOpen: (isOpen: boolean) => void;
+  selectedPetForForm: Pet | null;
+  setSelectedPetForForm: (pet: Pet | null) => void;
+}) => {
   const [authDialogOpen, setAuthDialogOpen] = useState<'login' | 'register' | null>(null);
   const { isAuthenticated, user, token } = useAuth();
 
-  const { data: petsResponse } = useQuery<PetsApiResponse>({ 
+  const { data: petsResponse } = useQuery<PetsApiResponse>({
     queryKey: ['pets', 'all', 'disponivel', 1, ''], // Query para a primeira página de pets disponíveis
     queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel&page=1&pageSize=6`).then(res => res.json()),
     initialData: { data: [], total: 0 },
@@ -181,6 +190,7 @@ const HeroSection = () => {
   const handleAdoptClick = () => {
     if (isAuthenticated) {
       setIsAdoptionFormOpen(true);
+      setSelectedPetForForm(null); // Ensure no pet is pre-selected when clicking general adopt button
     } else {
       setAuthDialogOpen('login');
     }
@@ -269,6 +279,7 @@ const HeroSection = () => {
         pets={petsResponse?.data || []} 
         user={user}
         token={token}
+        initialPetId={selectedPetForForm?.id.toString() || ""}
       />
       <LoginDialog 
         open={authDialogOpen === 'login'} 
@@ -283,9 +294,8 @@ const HeroSection = () => {
     </>
   );
 };
-
 // Pet Card Component
-const PetCard = ({ pet, onAdopt, onViewDetails }: { pet: Pet; onAdopt?: (petId: number) => void; onViewDetails?: (pet: Pet) => void; }) => {
+const PetCard = ({ pet, onAdopt, onViewDetails }: { pet: Pet; onAdopt?: (pet: Pet) => void; onViewDetails?: (pet: Pet) => void; }) => {
   const [isLiked, setIsLiked] = useState(false);
   const getAge = (birthDate: string) => {
     if (!birthDate) return "Idade desconhecida";
@@ -372,7 +382,7 @@ const PetCard = ({ pet, onAdopt, onViewDetails }: { pet: Pet; onAdopt?: (petId: 
         </p>
         {personalityTraits.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {personalityTraits.slice(0, 2).map((trait, index) => (
+            {personalityTraits.map((trait, index) => (
               <Badge key={index} variant="outline" className="text-xs">
                 {trait}
               </Badge>
@@ -397,7 +407,7 @@ const PetCard = ({ pet, onAdopt, onViewDetails }: { pet: Pet; onAdopt?: (petId: 
         {pet.status === 'disponivel' && (
           <Button
             className="flex-1 bg-gradient-primary hover:shadow-glow transition-all duration-300"
-            onClick={() => onAdopt?.(pet.id)}
+            onClick={() => onAdopt?.(pet)}
           >
             <Heart className="w-4 h-4 mr-2" />
             Adotar
@@ -409,7 +419,7 @@ const PetCard = ({ pet, onAdopt, onViewDetails }: { pet: Pet; onAdopt?: (petId: 
 };
 
 // Pet Modal Component
-const PetModal = ({ pet, isOpen, onClose, onAdopt, isAdopting }: { pet: Pet; isOpen: boolean; onClose: () => void; onAdopt?: (petId: number) => void; isAdopting: boolean; }) => {
+const PetModal = ({ pet, isOpen, onClose, onAdopt, isAdopting }: { pet: Pet; isOpen: boolean; onClose: () => void; onAdopt?: (pet: Pet) => void; isAdopting: boolean; }) => {
   const getAge = (birthDate: string) => {
     if (!birthDate) return "Idade desconhecida";
     const birth = new Date(birthDate);
@@ -524,7 +534,7 @@ const PetModal = ({ pet, isOpen, onClose, onAdopt, isAdopting }: { pet: Pet; isO
               <Button
                 className="flex-1 bg-gradient-primary hover:shadow-glow transition-all duration-300"
                 onClick={() => {
-                  onAdopt?.(pet.id);
+                  onAdopt?.(pet);
                   onClose();
                 }}
                 disabled={isAdopting}
@@ -586,16 +596,18 @@ const AdoptionModal = ({ petId, isOpen, onClose, onConfirm, isPending }: { petId
 };
 
 // Pets Section Component
-const PetsSection = () => {
+const PetsSection = ({ setIsAdoptionFormOpen, setSelectedPetForForm }: {
+  setIsAdoptionFormOpen: (isOpen: boolean) => void;
+  setSelectedPetForForm: (pet: Pet | null) => void;
+}) => {
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const [adoptionPetId, setAdoptionPetId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [filterStatus, setFilterStatus] = useState("disponivel");
   const [page, setPage] = useState(1);
   const pageSize = 6;
 
-  const queryClient = useQueryClient();
+  const { isAuthenticated, user, token } = useAuth();
   const { toast } = useToast();
 
   const fetchPets = async (species: string, status: string, searchTerm: string, page: number) => {
@@ -621,44 +633,17 @@ const PetsSection = () => {
     }
   );
 
-  const adoptPetMutation = useMutation({
-    mutationFn: async ({ petId, adopterId }: { petId: number; adopterId: string }) => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/adocoes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ petId, adopterId }),
-      });
-      if (!response.ok) {
-        throw new Error("Falha ao registrar a adoção.");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
+  const handleAdoptClick = (pet: Pet) => {
+    if (isAuthenticated) {
+      setSelectedPetForForm(pet);
+      setIsAdoptionFormOpen(true);
+    } else {
       toast({
-        title: "Sucesso!",
-        description: "Adoção registrada com sucesso! O pet foi marcado como adotado.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['pets'] }); // Refresh pet list
-      setAdoptionPetId(null); // Close modal on success
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível registrar a adoção.",
+        title: "Atenção",
+        description: "Você precisa estar logado para adotar um pet.",
         variant: "destructive",
       });
-    },
-  });
-
-  const handleAdopt = () => {
-    document.getElementById('home')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleConfirmAdoption = (adopterId: string) => {
-    if (adoptionPetId) {
-      adoptPetMutation.mutate({ petId: adoptionPetId, adopterId });
+      // Optionally, open login dialog here if desired
     }
   };
 
@@ -762,7 +747,7 @@ const PetsSection = () => {
                 <PetCard
                   key={pet.id}
                   pet={pet}
-                  onAdopt={handleAdopt}
+                  onAdopt={handleAdoptClick}
                   onViewDetails={handleViewDetails}
                 />
               ))}
@@ -820,23 +805,15 @@ const PetsSection = () => {
             pet={selectedPet}
             isOpen={!!selectedPet}
             onClose={() => setSelectedPet(null)}
-            onAdopt={handleAdopt}
+            onAdopt={handleAdoptClick}
             isAdopting={false}
           />
         )}
-
-        {/* Adoption Modal */}
-        <AdoptionModal
-          petId={adoptionPetId}
-          isOpen={!!adoptionPetId}
-          onClose={() => setAdoptionPetId(null)}
-          onConfirm={handleConfirmAdoption}
-          isPending={adoptPetMutation.isPending}
-        />
       </div>
     </section>
   );
 };
+
 
 // How to Adopt Section Component
 const HowToAdoptSection = () => {
@@ -1116,12 +1093,23 @@ const Footer = () => {
 
 // Main Index Component
 const Index = () => {
+  const [isAdoptionFormOpen, setIsAdoptionFormOpen] = useState(false);
+  const [selectedPetForForm, setSelectedPetForForm] = useState<Pet | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main>
-        <HeroSection />
-        <PetsSection />
+        <HeroSection 
+          isAdoptionFormOpen={isAdoptionFormOpen}
+          setIsAdoptionFormOpen={setIsAdoptionFormOpen}
+          selectedPetForForm={selectedPetForForm}
+          setSelectedPetForForm={setSelectedPetForForm}
+        />
+        <PetsSection 
+          setIsAdoptionFormOpen={setIsAdoptionFormOpen}
+          setSelectedPetForForm={setSelectedPetForForm}
+        />
         <HowToAdoptSection />
       </main>
       <Footer />
