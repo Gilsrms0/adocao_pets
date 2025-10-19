@@ -904,10 +904,10 @@ const Footer = () => {
   return (
     <footer className="bg-card border-t border-border">
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand Section */}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Left Section (Brand) */}
+          <div className="md:col-span-1">
+            <div className="flex items-center space-x-2 mb-4">
               <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
                 <Heart className="w-6 h-6 text-white" fill="currentColor" />
               </div>
@@ -915,7 +915,7 @@ const Footer = () => {
                 AdoteMe
               </span>
             </div>
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-muted-foreground leading-relaxed mb-4">
               Conectamos corações e criamos famílias. Nosso objetivo é encontrar
               o lar perfeito para cada aumigo e o companheiro ideal para cada família.
             </p>
@@ -933,77 +933,66 @@ const Footer = () => {
               ))}
             </div>
           </div>
-                              {/* Support */}
-                              <div>
-                                <h3 className="text-lg font-semibold text-foreground mb-4">Suporte</h3>
-                                <ul className="space-y-3">
-                                  {supportLinks.map((link, index) => (
-                                    <li key={index}>
-                                      <a
-                                        href={link.href}
-                                        className="text-muted-foreground hover:text-primary transition-colors"
-                                      >
-                                        {link.name}
-                                      </a>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                              {/* Contact Info */}
-                              <div>
-                                <h3 className="text-lg font-semibold text-foreground mb-4">Contato</h3>
-                                <div className="space-y-4">
-                                  <div className="flex items-center space-x-3">
-                                    <Phone className="w-5 h-5 text-primary" />
-                                    <div>
-                                      <p className="text-sm text-muted-foreground">Telefone</p>
-                                      <p className="text-foreground font-medium">(11) 99999-9999</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Mail className="w-5 h-5 text-primary" />
-                                    <div>
-                                      <p className="text-sm text-muted-foreground">E-mail</p>
-                                      <p className="text-foreground font-medium">contato@adoteme.com</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-start space-x-3">
-                                    <MapPin className="w-5 h-5 text-primary mt-1" />
-                                    <div>
-                                      <p className="text-sm text-muted-foreground">Endereço</p>
-                                      <p className="text-foreground font-medium">
-                                        Rua dos Pets, 123<br />
-                                        Jardim Animal - SP
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                  </div>
+
+          {/* Center Section (Support Links) */}
+          <div className="md:col-span-1">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Suporte</h3>
+            <ul className="space-y-3">
+              {supportLinks.map((link, index) => (
+                <li key={index}>
+                  <a
+                    href={link.href}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Right Section (Contact Info) */}
+          <div className="md:col-span-1">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Contato</h3>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Telefone</p>
+                  <p className="text-foreground font-medium">(11) 99999-9999</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Mail className="w-5 h-5 text-primary" />
+                <div>
+                  <p className="text-sm text-muted-foreground">E-mail</p>
+                  <p className="text-foreground font-medium">contato@adoteme.com</p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-primary mt-1" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Endereço</p>
+                  <p className="text-foreground font-medium">
+                    Rua dos Pets, 123<br />
+                    Jardim Animal - SP
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <Separator className="my-12" />
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="text-muted-foreground text-sm">
-            {currentYear} AdoteMe. Todos os direitos reservados.
+            &copy; {currentYear} AdoteMe. Todos os direitos reservados.
           </div>
           <div className="flex items-center text-muted-foreground text-sm">
             Feito com <Heart className="w-4 h-4 mx-1 text-red-500" fill="currentColor" /> para nossos
             amigos de quatro patas
           </div>
         </div>
-        {/* Call to Action */}
-        {/*<div className="mt-12 text-center bg-gradient-primary/5 rounded-2xl p-8 border border-primary/20">
-          <h3 className="text-2xl font-bold text-foreground mb-2">
-            Pronto para Fazer a Diferença?
-          </h3>
-          <p className="text-muted-foreground mb-6">
-            Junte-se a nós e ajude a conectar pets especiais com famílias amorosas.
-          </p>
-          {/*<Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
-            <Heart className="w-4 h-4 mr-2" />
-            Adotar Agora
-          </Button>
-        </div>*/}
       </div>
     </footer>
   );
