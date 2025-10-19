@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, Facebook, Instagram, Twitter, Mail, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Users, Home, Calendar, Info, Search, Filter, CheckCircle, Phone, FileText, Facebook, Instagram, Mail, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import heroImage from "@/assets/hero-pets.jpg";
 import { useToast } from "@/components/ui/use-toast";
@@ -198,7 +198,7 @@ const HeroSection = ({ isAdoptionFormOpen, setIsAdoptionFormOpen, selectedPetFor
         <div className="absolute inset-0">
           <img
             src={heroImage}
-            alt="Pets felizes no abrigo"
+            alt="Aumigos felizes no abrigo"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-hero opacity-75"></div>
@@ -544,51 +544,7 @@ const PetModal = ({ pet, isOpen, onClose, onAdopt, isAdopting }: { pet: Pet; isO
   );
 };
 
-// Adoption Modal Component
-const AdoptionModal = ({ petId, isOpen, onClose, onConfirm, isPending }: { petId: number | null; isOpen: boolean; onClose: () => void; onConfirm: (adopterId: string) => void; isPending: boolean; }) => {
-  const [adopterId, setAdopterId] = useState("");
-  const { toast } = useToast();
 
-  const handleConfirm = () => {
-    if (adopterId) {
-      onConfirm(adopterId);
-    } else {
-      toast({
-        title: "Aviso",
-        description: "ID do adotante é necessário para registrar a adoção.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (!isOpen || petId === null) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Registrar Adoção</DialogTitle>
-          <DialogDescription>
-            Para continuar, por favor, insira o ID do adotante. Esta informação será substituída por um sistema de login no futuro.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <Label htmlFor="adopterId" className="text-foreground font-semibold">ID do Adotante</Label>
-          <Input
-            id="adopterId"
-            value={adopterId}
-            onChange={(e) => setAdopterId(e.target.value)}
-            placeholder="Insira o ID do adotante"
-            className="bg-background border-border"
-          />
-        </div>
-        <Button onClick={handleConfirm} disabled={!adopterId || isPending} className="w-full bg-gradient-primary hover:shadow-glow transition-all duration-300">
-          {isPending ? "Registrando..." : "Confirmar Adoção"}
-        </Button>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 // Pets Section Component
 const PetsSection = ({ setIsAdoptionFormOpen, setSelectedPetForForm }: {
@@ -602,7 +558,7 @@ const PetsSection = ({ setIsAdoptionFormOpen, setSelectedPetForForm }: {
   const [page, setPage] = useState(1);
   const pageSize = 6;
 
-  const { isAuthenticated, user, token } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   const fetchPets = async (species: string, status: string, searchTerm: string, page: number) => {
@@ -624,7 +580,7 @@ const PetsSection = ({ setIsAdoptionFormOpen, setSelectedPetForForm }: {
     {
       queryKey: ['pets', filterSpecies, filterStatus, searchTerm, page],
       queryFn: () => fetchPets(filterSpecies, filterStatus, searchTerm, page),
-      keepPreviousData: true, // Melhora a experiência do usuário durante a paginação
+      placeholderData: keepPreviousData, // Melhora a experiência do usuário durante a paginação
     }
   );
 
@@ -945,21 +901,15 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const socialLinks = [
     { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Twitter, href: "#", label: "Twitter" }
-  ];
-  const quickLinks = [
-    { name: "Início", href: "#home" },
-    { name: "Aumigos Disponíveis", href: "#pets" },
-    { name: "Como Adotar", href: "#how-to-adopt" },
-    { name: "Sobre Nós", href: "#about" }
+    { icon: Instagram, href: "#", label: "Instagram" }
   ];
   const supportLinks = [
     { name: "FAQ", href: "#faq" },
     { name: "Contato", href: "#contact" },
     { name: "Políticas", href: "#policies" },
     { name: "Termos de Uso", href: "#terms" },
-    { name: "Privacidade", href: "#privacy" }
+    { name: "Privacidade", href: "#privacy" },
+    { name: "Sobre Nós", href: "#about" }
   ];
   return (
     <footer className="bg-card border-t border-border">
@@ -992,22 +942,6 @@ const Footer = () => {
                 </Button>
               ))}
             </div>
-          </div>
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold text-foreground mb-4">Links Rápidos</h3>
-            <ul className="space-y-3">
-              {quickLinks.map((link, index) => (
-                <li key={index}>
-                  <a
-                    href={link.href}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
           </div>
           {/* Support */}
           <div>
