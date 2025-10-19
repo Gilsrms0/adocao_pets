@@ -62,10 +62,11 @@ export const createPet = async (req, res) => {
 
 // 2. Retorna todos os Pets com paginação e busca (Rota pública)
 export const getAllPets = async (req, res) => {
-  const { species, status, search, page = 1, pageSize = 6 } = req.query;
-  
+  const { species, status, search, page, pageSize } = req.query;
+
   const where = {};
   if (species && species !== 'all') where.species = species;
+  // Se status não for fornecido ou for 'all', não aplica filtro de status
   if (status && status !== 'all') where.status = status;
   if (search) {
     where.OR = [
@@ -74,24 +75,29 @@ export const getAllPets = async (req, res) => {
     ];
   }
 
-  const pageNum = parseInt(page, 10);
-  const pageSizeNum = parseInt(pageSize, 10);
-  const skip = (pageNum - 1) * pageSizeNum;
-  const take = pageSizeNum;
+  let skip = undefined;
+  let take = undefined;
+
+  if (page && pageSize) {
+    const pageNum = parseInt(page, 10);
+    const pageSizeNum = parseInt(pageSize, 10);
+    skip = (pageNum - 1) * pageSizeNum;
+    take = pageSizeNum;
+  }
 
   try {
     const total = await prisma.pet.count({ where });
-    const data = await prisma.pet.findMany({ 
-      where, 
-      skip, 
-      take, 
-      orderBy: { id: 'desc' } 
+    const data = await prisma.pet.findMany({
+      where,
+      skip,
+      take,
+      orderBy: { id: 'desc' }
     });
-    
+
     res.status(200).json({ data, total });
   } catch (error) {
     console.error("Erro ao buscar pets:", error);
-    res.status(500).json({ error: "Erro ao buscar pets." });
+    res.status(500).json({ error: "Erro interno do servidor ao buscar pets." });
   }
 };
 
