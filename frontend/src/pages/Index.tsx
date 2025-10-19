@@ -172,20 +172,15 @@ const AdoptionFormModal = ({ isOpen, onClose, pets, user, token, initialPetId }:
 };
 
 // Hero Section Component
-const HeroSection = ({ isAdoptionFormOpen, setIsAdoptionFormOpen, selectedPetForForm, setSelectedPetForForm }: {
+const HeroSection = ({ isAdoptionFormOpen, setIsAdoptionFormOpen, selectedPetForForm, setSelectedPetForForm, allAvailablePets }: {
   isAdoptionFormOpen: boolean;
   setIsAdoptionFormOpen: (isOpen: boolean) => void;
   selectedPetForForm: Pet | null;
   setSelectedPetForForm: (pet: Pet | null) => void;
+  allAvailablePets: Pet[];
 }) => {
   const [authDialogOpen, setAuthDialogOpen] = useState<'login' | 'register' | null>(null);
   const { isAuthenticated, user, token } = useAuth();
-
-  const { data: petsResponse } = useQuery<PetsApiResponse>({
-    queryKey: ['pets', 'all', 'disponivel', 1, ''], // Query para a primeira página de pets disponíveis
-    queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel&page=1&pageSize=6`).then(res => res.json()),
-    initialData: { data: [], total: 0 },
-  });
 
   const handleAdoptClick = () => {
     if (isAuthenticated) {
@@ -260,7 +255,7 @@ const HeroSection = ({ isAdoptionFormOpen, setIsAdoptionFormOpen, selectedPetFor
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
                   <Home className="w-8 h-8 text-white" />
                 </div>
-                <div className="text-3xl font-bold">{petsResponse?.total || 0}+</div>
+                <div className="text-3xl font-bold">{allAvailablePets.length || 0}+</div>
                 <div className="text-white/80">Aumigos Disponíveis</div>
               </div>
             </div>
@@ -276,7 +271,7 @@ const HeroSection = ({ isAdoptionFormOpen, setIsAdoptionFormOpen, selectedPetFor
       <AdoptionFormModal 
         isOpen={isAdoptionFormOpen} 
         onClose={() => setIsAdoptionFormOpen(false)} 
-        pets={petsResponse?.data || []} 
+        pets={allAvailablePets} 
         user={user}
         token={token}
         initialPetId={selectedPetForForm?.id.toString() || ""}
@@ -1096,6 +1091,12 @@ const Index = () => {
   const [isAdoptionFormOpen, setIsAdoptionFormOpen] = useState(false);
   const [selectedPetForForm, setSelectedPetForForm] = useState<Pet | null>(null);
 
+  const { data: allAvailablePetsResponse } = useQuery<PetsApiResponse>({
+    queryKey: ['allAvailablePets'],
+    queryFn: () => fetch(`${import.meta.env.VITE_API_URL}/pets?status=disponivel&pageSize=9999`).then(res => res.json()),
+    initialData: { data: [], total: 0 },
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -1105,6 +1106,7 @@ const Index = () => {
           setIsAdoptionFormOpen={setIsAdoptionFormOpen}
           selectedPetForForm={selectedPetForForm}
           setSelectedPetForForm={setSelectedPetForForm}
+          allAvailablePets={allAvailablePetsResponse?.data || []}
         />
         <PetsSection 
           setIsAdoptionFormOpen={setIsAdoptionFormOpen}
